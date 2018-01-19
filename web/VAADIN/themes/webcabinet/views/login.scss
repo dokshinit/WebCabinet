@@ -1,0 +1,161 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Стили для "окна" авторизации приложения.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@mixin webcabinet-login-view {
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // UI.
+  .login-ui {
+    @include radial-gradient(circle at 50% 50%, scale-color($v-app-background-color, $lightness: -2%), scale-color($v-app-background-color, $lightness: -2% - valo-gradient-opacity()), $fallback: $v-app-background-color);
+    padding-top: 0 !important;
+    @include animation(valo-animate-in-fade 300ms 10ms backwards);
+
+    > .v-loading-indicator {
+      display: none !important;
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Контент UI (панель).
+  .login-view {
+    @include box-shadow(none);
+    border-radius: 0px;
+    border: none;
+    // Задний фон.
+    //@include radial-gradient(circle at 50% 50%, scale-color($v-app-background-color, $lightness: -2%), scale-color($v-app-background-color, $lightness: -2% - valo-gradient-opacity()), $fallback: $v-app-background-color);
+    @include linear-gradient(145deg, lighten(#484962, 20%) 30%, lighten(#d06b41, 20%) 100%);
+    padding-top: 0 !important;
+    @include animation(valo-animate-in-fade 300ms 10ms backwards);
+
+    > .v-loading-indicator {
+      display: none !important;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Раскладка для тела панели (центрируем панель + минимальный размер, меньше которого включается скроллинг).
+    .layout {
+      min-width: 100%;
+      min-height: 100%;
+      vertical-align: middle;
+      text-align: center;
+
+      > .v-slot {
+        height: 100%;
+        width: 100%;
+        vertical-align: middle;
+        text-align: center;
+        position: absolute;
+      }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Компонент с формой авторизации (вертикальная раскладка).
+    .panel {
+      @include valo-panel-style;
+      border: valo-border($color: darkest-color($xv-bg-color, $v-app-background-color), $strength: 0.9);
+      //border: 1px solid #3f3f56;
+      //padding: round($v-unit-size / 1.5) round($v-unit-size / 1.5);
+      min-width: 300px; // Чтобы нельзя было слишком заузить поля ввода.
+      max-width: 90%;
+      @include animation(animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards);
+      padding: 0;
+
+      // Логотип или информация о СТК.
+      .logo {
+        width: 100%;
+        > .v-slot {
+          height: $v-unit-size;
+          text-align: center;
+          vertical-align: middle;
+        }
+
+        > .v-slot-firm {
+          //background: lighten($navigation-bar-bg-color, 10%);
+          background: darken($xv-bg-color, 0%);
+          //background: $navigation-bar-bg-color;
+          color: white;
+          font-size: 20px;
+          border-top-left-radius: 2px;
+          border-top-right-radius: 2px;
+        }
+
+        > .v-slot-system {
+          background: lighten($xv-bg-color, 50%);
+          color: $xv-bg-color;
+          font-size: 20px;
+          font-weight: bold;
+
+          b {
+            color: #D05015; //#ff5c34;
+            //font-size: 24px;
+            font-weight: bolder;
+          }
+        }
+      }
+
+      // Форма.
+      .form {
+        padding-top: $v-layout-margin-top / 2;
+        padding-bottom: $v-layout-margin-bottom / 2;
+        width: 100%;
+
+        .v-slot {
+          width: 100%;
+        }
+
+        // Заголовок.
+        .title {
+          font-weight: bold;
+          line-height: $v-unit-size;
+          width: 100%;
+          text-align: center;
+        }
+
+        .v-icon {
+          opacity: 0.3;
+        }
+
+        .v-slot-signin {
+          padding-top: $v-unit-size / 2;
+        }
+
+        // Ссылка для всплывающего окна примечания.
+        .note-popup {
+          padding-top: 10px;
+          width: 100%; // Растягиваем на полную ширину элемент-ссылку - для того, чтобы попап был центирован.
+          color: lighten($xv-bg-color, 10%);
+          font-size: 90%;
+        }
+
+        .v-button {
+          @include valo-button-style($background-color: lighten($xv-bg-color, 15%));
+          font-weight: bold;
+          //color: #ededf0;
+          //border: 1px solid #3b3b4f;
+          //border-top-color: #3f3f56;
+          //border-bottom-color: #343445;
+          //background-color: #4b4b65;
+          //background-image: $v-gradient -webkit-linear-gradient(top, #51516d 2%, #424258 98%);
+          //background-image: linear-gradient(to bottom,#51516d 2%, #424258 98%);
+          //-webkit-box-shadow: inset 0 1px 0 #72727b, inset 0 -1px 0 #404055, 0 2px 3px rgba(0, 0, 0, 0.05);
+          //box-shadow: inset 0 1px 0 #72727b, inset 0 -1px 0 #404055, 0 2px 3px rgba(0, 0, 0, 0.05);
+          //text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+      }
+    }
+  }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Всплывающее окно с примечанием.
+  .note-popup-panel {
+    @include box-shadow(none);
+    margin: 5px;
+    border: none;
+    background: transparent;
+  }
+
+  .v-popupview-popup-note-popup {
+    background: #FFFEEE;
+  }
+
+}

@@ -1,0 +1,6 @@
+@import "webcabinet";
+
+.webcabinet {
+  // Output the actual theme selectors
+  @include webcabinet;
+}

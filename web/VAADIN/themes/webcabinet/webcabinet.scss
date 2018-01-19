@@ -1,0 +1,81 @@
+//$v-font-size: 14px;
+//$v-unit-size: 24px;
+$v-font-family: LiberationSans, Helvetica, Arial, sans-serif;
+//$v-background-color: #4b4b65;
+//$navigation-bar-bg-color: $v-background-color;
+
+@import "../valo/valo";
+
+$xv-row-height: 30px;
+$xv-bg-color: #4b4b65;
+
+@import "common";
+@import "views/login";
+@import "views/main";
+@import "views/information";
+@import "views/transactions";
+@import "views/cards";
+//
+@import "dialogs/messagedialog";
+
+// Optimize the CSS output
+$v-included-components: remove($v-included-components, accordion);
+$v-included-components: remove($v-included-components, colorpicker);
+//$v-included-components: remove($v-included-components, popupview);
+$v-included-components: remove($v-included-components, progressbar);
+$v-included-components: remove($v-included-components, slider);
+$v-included-components: remove($v-included-components, splitpanel);
+$v-included-components: remove($v-included-components, table);
+$v-included-components: remove($v-included-components, tree);
+$v-included-components: remove($v-included-components, treetable);
+$v-included-components: remove($v-included-components, twincolselect);
+
+// Main headLayout padding
+$view-padding: round($v-unit-size / 1.5) !default;
+
+// Slight adjustment to menu background-color
+$valo-menu-background-color: #414B56;
+
+@mixin MyFont($name, $weightstyle, $fontWeight: 400, $fontStyle: normal) {
+  @font-face {
+    font-family: "#{$name}";
+    src: url('fonts/#{$name}-#{$weightstyle}.ttf') format('truetype');
+    font-weight: $fontWeight;
+    font-style: $fontStyle;
+  }
+}
+
+@include MyFont('LiberationSans', 'Regular', 400, normal);
+@include MyFont('LiberationSans', 'Bold', bold, normal);
+@include MyFont('LiberationSans', 'BoldItalic', bold, italic);
+@include MyFont('LiberationSans', 'Italic', 400, italic);
+//@include font-lato($light: true, $regular: true, $bold: true);
+//@include font-lora($regular: true, $bold: true);
+
+@mixin webcabinet {
+
+  @include valo;
+
+  //.v-button::before {
+  //  height: 100% !important;
+  //}
+
+  // Для строк с автопереносом по словам.
+  .wrapped-label {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  @include webcabinet-common;
+  @include webcabinet-login-view;
+  @include webcabinet-main-view;
+  @include webcabinet-information-unitview;
+  @include webcabinet-transactions-unitview;
+  @include webcabinet-cards-unitview;
+
+  @include webcabinet-message-dialog;
+
+  //  @include webcabinet-sales-view;
+  //  @include webcabinet-transactions-view;
+  //  @include webcabinet-reports-view;
+}

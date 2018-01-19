@@ -1,0 +1,69 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@mixin webcabinet-transactions-unitview {
+
+  .transactions-UV {
+    min-width: 300px;
+
+    .header-L {
+      width: 100%;
+      padding: 0px;
+      //background: blue;
+
+      .title {
+        width: 100%;
+        padding: 5px;
+        background: lighten($xv-bg-color, 55%);
+        color: $xv-bg-color;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .toolbar-L {
+        width: 100%;
+        padding: 5px;
+        //background: lightgoldenrodyellow;
+
+        .v-horizontallayout {
+          padding: 0 5px 0 0;
+          vertical-align: bottom;
+
+          .v-spacing {
+            width: 5px;
+          }
+        }
+
+        .buttons-L {
+          padding-top: 5px;
+          //padding-bottom: 5px;
+        }
+
+        .v-caption {
+          color: lighten($xv-bg-color, 20%);
+          font-size: 12px;
+          padding: 0px;
+          vertical-align: bottom;
+        }
+
+        .v-datefield, .v-filterselect {
+          width: 130px;
+        }
+      }
+    }
+
+    //&[width-range~="0-300px"] {
+    //  .unitview-header {
+    //    //background: #8080FF;
+    //
+    //    .unitview-toolbar {
+    //      .v-widget {
+    //        display: block;
+    //        width: 100%;
+    //      }
+    //    }
+    //  }
+    //}
+
+    .transactions-table {
+    }
+  }
+}
