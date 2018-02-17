@@ -2,12 +2,14 @@ package app.view;
 
 import app.AppNavigator;
 import app.AppUI;
+import app.model.AppModel;
 import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Responsive;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static app.AppServlet.logger;
 import static app.view.unit.Helper.*;
 
 @SuppressWarnings("serial")
@@ -16,6 +18,7 @@ public class MainView extends HorizontalLayout {
     final MainViewMenu menu;
     final CssLayout content;
     final AppNavigator navigator;
+    UnitViewType unitViewType = null;
     AbstractUnitView unitView = null;
 
     public MainView() {
@@ -64,16 +67,31 @@ public class MainView extends HorizontalLayout {
 //        addComponent(accButton);
     }
 
+    @Override
+    public AppUI getUI() {
+        return (AppUI) super.getUI();
+    }
+
     public void fireOnBrowserResized(final Page.BrowserWindowResizeEvent event) {
         if (unitView != null) unitView.fireOnBrowserResized(event);
     }
 
     public void fireOnViewChanged(UnitViewType vtype, View view) {
         menu.fireOnViewChanged(vtype);
-        AppUI ui = (AppUI) getUI();
+        AppUI ui = getUI();
         ui.fireOnBrowserResized(null);
         ui.closeOpenedWindows();
+        unitViewType = vtype;
         unitView = (AbstractUnitView) view;
+        ui.logAction(vtype, AppModel.LogActionType.OPENPAGE);
+    }
+
+    public UnitViewType getUnitViewType() {
+        return unitViewType;
+    }
+
+    public AbstractUnitView getUnitView() {
+        return unitView;
     }
 
     @Override

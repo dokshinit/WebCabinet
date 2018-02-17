@@ -3,6 +3,7 @@ package app.view.unit;
 import app.model.Card;
 import app.sizer.SizeReporter;
 import com.vaadin.data.ValueProvider;
+import com.vaadin.server.Sizeable;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.StyleGenerator;
@@ -11,11 +12,26 @@ import util.NumberTools;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (27.12.17).
  */
 public class Helper {
+
+    public static final int ROW_HEIGHT = 26;
+
+    public static void setRowHeight(Grid g) {
+        g.setRowHeight(ROW_HEIGHT);
+    }
+
+    public static void setHeightByCollection(Grid g, Collection col) {
+        double bodyH = (col == null ? 0 : col.size()) * g.getBodyRowHeight();
+        double headH = g.getHeaderRowCount() * g.getHeaderRowHeight();
+        double footH = g.getFooterRowCount() * g.getFooterRowHeight();
+        g.setHeight((float) (headH + bodyH + footH), Sizeable.Unit.PIXELS);
+    }
+
 
     public static String fmtN2(Long num) {
         return NumberTools.format2.format(num / 100.0);

@@ -7,12 +7,12 @@ import com.vaadin.server.Resource;
 
 public enum UnitViewType {
     INFORMATION("information", "Информация", InformationUnitView.class, VaadinIcons.HOME, true),
-    TURNOVER("turnover", "Обороты", UnderConstructionUnitView.class, VaadinIcons.INVOICE, true),
+    TURNOVER("turnover", "Обороты", TurnoverUnitView.class, VaadinIcons.INVOICE, true),
     TRANSACTIONS("transactions", "Транзакции", TransactionUnitView.class, VaadinIcons.TABLE, true),
     CARDS("cards", "Карты", CardUnitView.class, VaadinIcons.USER_CARD, true),
-    REQUESTS("requests", "Заявки", UnderConstructionUnitView.class, VaadinIcons.RECORDS, true),
+    REQUESTS("requests", "Заявки", RequestUnitView.class, VaadinIcons.RECORDS, true),
     //
-    ERROR("error", "Ошибка",ErrorUnitView.class, VaadinIcons.WARNING, false);
+    ERROR("error", "Ошибка", ErrorUnitView.class, VaadinIcons.WARNING, false);
 
     private final String viewTitle;
     private final String viewName;

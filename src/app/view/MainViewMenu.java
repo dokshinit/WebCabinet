@@ -1,6 +1,7 @@
 package app.view;
 
 import app.AppUI;
+import app.model.AppModel;
 import app.model.User;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ThemeResource;
@@ -83,6 +84,7 @@ public class MainViewMenu extends CustomComponent {
     }
 
     void fireOnLogoutItem() {
+        getUI().logAction(AppModel.LogActionType.LOGOUT);
         AppUI.userLogout();
     }
 

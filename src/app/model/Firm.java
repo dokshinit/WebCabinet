@@ -21,6 +21,22 @@ public enum Firm {
         this.title = title;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
     public static Firm byId(int idd) {
         for (Firm item : values()) if (item.id == idd) return item;
         return null;

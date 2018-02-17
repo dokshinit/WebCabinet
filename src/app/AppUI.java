@@ -3,6 +3,7 @@ package app;
 import app.model.AppModel;
 import app.view.LoginView;
 import app.view.MainView;
+import app.view.UnitViewType;
 import com.vaadin.annotations.Push;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;
@@ -72,6 +73,7 @@ public class AppUI extends UI {
             setContent(mainView = new MainView());
             getNavigator().navigateTo(getNavigator().getState());
         } else {
+            logAction(AppModel.LogActionPage.LOGIN, AppModel.LogActionType.OPENPAGE);
             mainView = null;
             removeStyleName(ValoTheme.UI_WITH_MENU);
             setContent(loginView = new LoginView());
@@ -119,5 +121,21 @@ public class AppUI extends UI {
             ui.updateContent();
             if (ui != curui) ui.push(); // Если не текущий UI, то обновляем его состояние.
         });
+    }
+
+    public void logAction(AppModel.LogActionPage page, AppModel.LogActionType type) {
+        getModel().logAction(page, type);
+    }
+
+    public void logAction(UnitViewType vtype, AppModel.LogActionType type) {
+        logAction(AppModel.LogActionPage.byUVType(vtype), type);
+    }
+
+    public void logAction(AppModel.LogActionType type) {
+        if (mainView != null) {
+            logAction(mainView.getUnitViewType(), type);
+        } else if (loginView != null) {
+            logAction(AppModel.LogActionPage.LOGIN, type);
+        }
     }
 }

@@ -8,26 +8,36 @@ import java.time.LocalDate;
 public class Card {
 
     public enum WorkState {
-        WORK(1, "Рабочая"),
-        LOCK(0, "Запрет"),
-        ARREST(-1, "Арест"),
-        DESTROY(-2, "Изъята");
+        WORK(1, "Рабочая", "Рабочие"),
+        LOCK(0, "Запрет", "На запрете"),
+        ARREST(-1, "Арест", "Арестованные"),
+        DESTROY(-2, "Изъята", "Изъятые");
 
         public int id;
-        public String title;
+        public String title, titleForMany;
 
-        WorkState(int id, String title) {
+        WorkState(int id, String title, String titleForMany) {
             this.id = id;
             this.title = title;
+            this.titleForMany = titleForMany;
         }
 
-        public static WorkState byId(int id) {
+        public static WorkState byId(Integer id) {
+            if (id == null) return null;
             for (WorkState item : values()) if (item.id == id) return item;
             return null;
         }
 
+        public int getId() {
+            return id;
+        }
+
         public String getTitle() {
             return title;
+        }
+
+        public String getTitleForMany() {
+            return titleForMany;
         }
     }
 
@@ -35,15 +45,17 @@ public class Card {
     private String iddCard;
     private AccType accType;
     private WorkState workState;
+    private LocalDate dtPay;
     private String driver, car, comment;
     private Long dbDayLimit; // 10*мл.
 
-    public Card(LocalDate dtw, LocalDate dtwEnd, String iddCard, Integer iAccType, Integer iWork, String driver, String car, Long dbDayLimit, String comment) {
+    public Card(LocalDate dtw, LocalDate dtwEnd, String iddCard, Integer iAccType, Integer iWork, LocalDate dtPay, String driver, String car, Long dbDayLimit, String comment) {
         this.dtw = dtw;
         this.dtwEnd = dtwEnd;
         this.iddCard = iddCard.substring(3);
         this.accType = AccType.byId(iAccType);
         this.workState = WorkState.byId(iWork);
+        this.dtPay = dtPay;
         this.driver = driver;
         this.car = car;
         this.dbDayLimit = dbDayLimit;
@@ -68,6 +80,10 @@ public class Card {
 
     public WorkState getWorkState() {
         return workState;
+    }
+
+    public LocalDate getDtPay() {
+        return dtPay;
     }
 
     public String getDriver() {

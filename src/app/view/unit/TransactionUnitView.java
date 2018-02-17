@@ -1,21 +1,9 @@
 package app.view.unit;
 
-import app.AppServlet;
-import app.AppUI;
 import app.ExError;
-import app.model.AppModel;
-import app.model.Azs;
-import app.model.Transaction;
-import app.sizer.SizeReporter;
-import app.view.AbstractUnitView;
-import com.vaadin.data.Binder;
-import com.vaadin.data.ValidationException;
-import com.vaadin.data.ValueProvider;
-import com.vaadin.data.provider.DataProvider;
-import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.server.Responsive;
+import app.dialog.RequestDialog;
+import app.model.*;
 import com.vaadin.server.UserError;
-import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 
 import java.time.LocalDate;
@@ -26,61 +14,39 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class TransactionUnitView extends VerticalLayout implements AbstractUnitView {
+public class TransactionUnitView extends BaseUnitView {
 
-    public AppModel getModel() {
-        return AppUI.model();
-    }
-
-    private SizeReporter gridSizeReporter;
     private Grid<Transaction> grid;
+    private TransactionDataService dataService;
     private SingleSelect<Transaction> singleSelect;
-    private Button filterButton, reportButton;
-
     private ComboBox<Azs> azsCombo;
-    private DateField dtwField, dtwEndField;
 
     private Integer iddAzs;
-    private LocalDate dtw, dtwEnd;
-
-    public TransactionUnitView() {
-        setSizeFull();
-        Responsive.makeResponsive(this);
-        addStyleName("transactions-UV");
-        setMargin(false);
-        setSpacing(false);
-
-        iddAzs = null;
-        dtw = LocalDate.now().minusYears(1).withDayOfMonth(1);
-        dtwEnd = dtw.plusMonths(1).minusDays(1);
-
-        addComponent(buildToolbar());
-
-        grid = buildGrid();
-        singleSelect = grid.asSingleSelect();
-        addComponent(grid);
-        setExpandRatio(grid, 1);
-
-        addLayoutClickListener((e) -> fireOnLayoutClick());
-    }
-
-    @Override
-    public AppUI getUI() {
-        return (AppUI) super.getUI();
-    }
-
-    private Binder<TransactionUnitView> dtwBind = new Binder<>();
-    private Binder<TransactionUnitView> dtwEndBind = new Binder<>();
 
     private ArrayList<Azs> azsList = null;
 
-    private Component buildToolbar() {
-        VerticalLayout header = style(new VerticalLayout(), "header-L");
-        header.setSpacing(false);
+    public TransactionUnitView() {
+        super("transaction", "Транзакции отпуска топлива");
+    }
 
-        Label title = style(new Label("Транзакции отпуска топлива"), "title");
-        title.setSizeUndefined();
+    @Override
+    protected void initVars() {
+        super.initVars();
 
+        iddAzs = null;
+        dtStart = LocalDate.now().withDayOfMonth(1);
+        dtEnd = dtStart.plusMonths(1).minusDays(1);
+    }
+
+    @Override
+    protected void buildHeadToolbar() {
+        buildHeadToolbarLayout();
+        buildAzsCombo();
+        buildHeadToolbarDtwsForPeriod();
+        buildHeadToolbarButtons();
+    }
+
+    private void buildAzsCombo() {
         azsCombo = style(new ComboBox<>("Объект АЗС"), "small"); //AppUI.model().loadAzs(2, LocalDate.now(), LocalDate.now().minusMonths(1))
         azsCombo.setTextInputAllowed(false);
         azsCombo.setEmptySelectionAllowed(true);
@@ -88,220 +54,139 @@ public class TransactionUnitView extends VerticalLayout implements AbstractUnitV
         azsCombo.setItemCaptionGenerator(Azs::getTitle);
         azsCombo.addValueChangeListener((e) -> fireOnAzsChanged(e.getValue()));
         azsCombo.setEnabled(false);
-
         try {
             if (azsList == null) {
-                azsList = getModel().loadAzs(0, LocalDate.now().minusMonths(1), LocalDate.now());
+                azsList = model.loadAzs(0, LocalDate.now().minusMonths(1), LocalDate.now());
                 azsCombo.setItems(azsList);
                 azsCombo.setEnabled(true);
             }
         } catch (ExError ex) {
             azsCombo.setComponentError(new UserError(ex.getMessage()));
         }
-
         HorizontalLayout azsL = new HorizontalLayout(azsCombo);
         azsL.setMargin(false);
 
-        dtwField = style(new DateField("Начало периода", dtw), "dtw", "small");
-        dtwField.addValueChangeListener((e) -> fireOnDtwChanged(0));
-        dtwField.setPlaceholder("Начало");
-        dtwField.setDateFormat("dd/MM/yyyy");
-        dtwBind.forField(dtwField)
-                .asRequired("Обязательное поле")
-                .withValidator((v) -> !(dtwEndField.getValue() != null && (v.compareTo(dtwEndField.getValue()) > 0)), "Позже даты конца периода!")
-                .bind((v) -> dtw, (c, v) -> dtw = v);
-
-        dtwEndField = style(new DateField("Конец периода", dtwEnd), "dtw", "small");
-        dtwEndField.addValueChangeListener((e) -> fireOnDtwChanged(1));
-        dtwEndField.setPlaceholder("Конец");
-        dtwEndField.setDateFormat("dd/MM/yyyy");
-        dtwEndBind.forField(dtwEndField)
-                .asRequired("Обязательное поле")
-                .withValidator((v) -> !(dtwField.getValue() != null && (v.compareTo(dtwField.getValue()) < 0)), "Раньше даты начала периода!")
-                .bind((v) -> dtwEnd, (c, v) -> dtwEnd = v);
-
-        HorizontalLayout dtwL = new HorizontalLayout(dtwField, dtwEndField);
-        dtwL.setMargin(false);
-
-        filterButton = new Button("Фильтр");
-        filterButton.addStyleName("small");
-        filterButton.setDescription("Применить фильтр");
-        filterButton.addClickListener(event -> fireOnFilterApply());
-        filterButton.setEnabled(false);
-
-        reportButton = new Button("Отчёт"); // FILE_TEXT FILE_ZIP NEWSPAPER
-        reportButton.addStyleName("small");
-        reportButton.setDescription("Сформировать отчёт");
-        reportButton.addClickListener(event -> fireOnCreateReport());
-        reportButton.setEnabled(false);
-
-        HorizontalLayout btnL = new HorizontalLayout(filterButton, reportButton);
-        btnL.addStyleName("buttons-L");
-        btnL.setMargin(false);
-        btnL.setExpandRatio(reportButton, 1.0f);
-
-        CssLayout tools = new CssLayout(azsL, dtwL, btnL);
-        Responsive.makeResponsive(tools);
-        tools.addStyleName("toolbar-L");
-
-        header.addComponents(title, tools);
-        header.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
-        header.setComponentAlignment(tools, Alignment.MIDDLE_RIGHT);
-
-        return header;
-    }
-
-    private TransactionDataService dataService;
-
-    private <V> Grid.Column<Transaction, V> transColumn(ValueProvider<Transaction, V> prov, ValueProvider<V, String> pres,
-                                                        String id, String title, StyleGenerator<Transaction> style, int wmin) {
-        Grid.Column<Transaction, V> c = gridColumn(grid, prov, pres, id, title, style);
-        c.setMinimumWidth(wmin);
-        c.setExpandRatio(wmin);
-        return c;
+        toolbarL.addComponent(azsL);
     }
 
     @SuppressWarnings("unchecked")
-    private Grid<Transaction> buildGrid() {
-        grid = new Grid<>();
-        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+    @Override
+    protected void buildBodyContent() {
+        grid = style(new Grid<>(), "transaction-table");
         grid.setSizeFull();
-        grid.addStyleName("transactions-table");
-
-        transColumn(t -> t.getStart(), v -> fmtDT86(v), "DTSTART", "Время", ST_AL_CENTER, 160);
-        transColumn(t -> t.getIddAzs(), null, "IDDAZS", "АЗС", ST_AL_CENTER, 50);
-        transColumn(t -> t.getIdd(), null, "IDD", "№", ST_AL_RIGHT, 70).setHidable(true).setHidden(true);
-        transColumn(t -> t.getCard(), null, "IDDCARD", "Карта", ST_AL_CENTER, 70);
-        transColumn(t -> t.getCardInfo(), null, "CCARD", "Информация", ST_AL_LEFT, 100).setSortable(false).setHidable(true).setHidden(true);
-        transColumn(t -> t.getAccType().abbreviation, null, "IACCTYPE", "Тип", ST_AL_CENTER, 45).setHidable(true);
-        transColumn(t -> t.getOil().abbreviation, null, "IDDOIL", "Н/П", ST_AL_CENTER, 60);
-        transColumn(t -> t.getPrice(), v -> fmtN2(v), "DBPRICE", "Цена", ST_AL_RIGHT, 60);
-        transColumn(t -> t.getVolume(), v -> fmtN2(v), "DBVOLUME", "Кол-во", ST_AL_RIGHT, 70);
-        transColumn(t -> t.getSumma(), v -> fmtN2(v), "DBSUMMA", "Сумма", ST_AL_RIGHT, 80);
-
+        column(grid, Transaction::getStart, Helper::fmtDT86, "DTSTART", "Время", ST_AL_CENTER, -160, null);
+        column(grid, Transaction::getIddAzs, null, "IDDAZS", "АЗС", ST_AL_CENTER, -50, null);
+        column(grid, Transaction::getIdd, null, "IDD", "№", ST_AL_RIGHT, -70, null).setHidable(true).setHidden(true);
+        column(grid, Transaction::getCard, null, "IDDCARD", "Карта", ST_AL_CENTER, -70, null);
+        column(grid, Transaction::getCardInfo, null, "CCARD", "Информация", ST_AL_LEFT, -100, null).setSortable(false).setHidable(true).setHidden(true);
+        column(grid, Transaction::getAccType, AccType::getAbbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, -45, null).setHidable(true);
+        column(grid, Transaction::getOil, Oil::getAbbreviation, "IDDOIL", "Н/П", ST_AL_CENTER, -60, null);
+        column(grid, Transaction::getPrice, Helper::fmtN2, "DBPRICE", "Цена", ST_AL_RIGHT, -60, null);
+        column(grid, Transaction::getVolume, Helper::fmtN2, "DBVOLUME", "Кол-во", ST_AL_RIGHT, -70, null);
+        column(grid, Transaction::getSumma, Helper::fmtN2, "DBSUMMA", "Сумма", ST_AL_RIGHT, -80, null);
+        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.setColumnReorderingAllowed(true);
+        setRowHeight(grid);
         grid.recalculateColumnWidths();
+        singleSelect = grid.asSingleSelect();
 
-        dataService = new TransactionDataService(dtw, dtwEnd, iddAzs);
-        DataProvider<Transaction, Void> dataProvider = DataProvider.fromCallbacks(
-                q -> dataService.fetch(filterButton, q.getOffset(), q.getLimit(), q.getSortOrders()).stream(),
-                q -> dataService.count(filterButton)
+        grid.addItemClickListener(this::fireOnTransactionSelected);
+        singleSelect.addValueChangeListener(e -> {
+            if (e.getOldValue() != null && e.getValue() == null) singleSelect.setValue(e.getOldValue());
+        });
 
-        );
-        grid.setDataProvider(dataProvider);
+        dataService = new TransactionDataService(grid);
+        addSizeReporterForExpandGridColumns(grid);
 
-        gridSizeReporter = new SizeReporter(grid);
-        gridSizeReporter.addResizeListener((e) -> updateGridColumns(grid, gridSizeReporter));
-
-        return grid;
+        bodyL.addComponent(grid);
+        rootL.setSizeFull();
+        rootL.setExpandRatio(bodyL, 1);
+        bodyL.setSizeFull();
+        bodyL.setExpandRatio(grid, 1);
     }
 
-    public void fireOnLayoutClick() {
-        getUI().closeOpenedWindows();
+    private void fireOnTransactionSelected(Grid.ItemClick<Transaction> e) {
+        if (e.getMouseEventDetails().isDoubleClick()) {
+        }
     }
 
     private void fireOnAzsChanged(Azs azs) {
-        if (dtwBind.isValid() && dtwEndBind.isValid()) {
-            filterButton.setEnabled(true);
-            reportButton.setEnabled(true);
-        }
         iddAzs = azs == null ? null : azs.getIdd();
-        //AppServlet.logger.infof("AZS CHANGE: %d", iddAzs);
+        toolbarParamsChanged = true;
+        updateButtonsState(!isValid());
     }
 
-
-    private void fireOnDtwChanged(int id) {
-        // Проверка валидаторов.
-        Binder<TransactionUnitView> b1 = id == 0 ? dtwBind : dtwEndBind;
-        Binder<TransactionUnitView> b2 = id == 0 ? dtwEndBind : dtwBind;
-        boolean iserr = false;
-        try {
-            b1.writeBean(this);
-        } catch (ValidationException ex) {
-            iserr = true;
-        }
-        try {
-            b2.validate();
-            b2.writeBean(this);
-        } catch (ValidationException ex) {
-            iserr = true;
-        }
-
-        if (iserr) {
-            filterButton.setEnabled(false);
-            reportButton.setEnabled(false);
-        } else {
-            filterButton.setEnabled(true);
-            reportButton.setEnabled(true);
-        }
+    @Override
+    protected void fireOnDateChanged(int id) {
+        fireOnDateChangedForPeriod(id);
     }
 
-    private void fireOnFilterApply() {
-        dtwBind.validate();
-        dtwEndBind.validate();
-        if (dtwBind.isValid() && dtwEndBind.isValid()) {
-            dataService.setup(dtw, dtwEnd, iddAzs);
-            grid.setDataProvider(grid.getDataProvider());
-            grid.recalculateColumnWidths();
-            filterButton.setEnabled(false);
-        } else {
-            filterButton.setEnabled(false);
-            reportButton.setEnabled(false);
-        }
+    @Override
+    protected void validate() {
+        dtStartBind.validate();
+        dtEndBind.validate();
     }
 
-    private void fireOnCreateReport() {
-        for (Grid.Column<Transaction, ?> c : grid.getColumns()) {
-            AppServlet.logger.infof("GRID-COLUMN: name='%s' width=%f", c.getId(), c.getWidth());
-        }
+    @Override
+    protected void fireOnCreateReport() {
+        if (!checkForStartAndFix(dtStart, dtEnd)) return;
+
+        HashMap<String, String> params = new HashMap<>();
+        String s1, s2;
+        params.put("dtStart", s1 = fmtDate8(dtStart));
+        params.put("dtEnd", s2 = fmtDate8(dtEnd));
+        params.put("iddAzs", iddAzs == null ? "" : "" + iddAzs);
+        //
+        Request r = Request.newReport(Request.ReportType.TRANSACTION,
+                "за период с " + s1 + " по " + s2 + (iddAzs == null ? "" : " на АЗС №" + iddAzs), params);
+        RequestDialog dlg = new RequestDialog(r);
+        getUI().addWindow(dlg);
     }
 
+    @Override
+    protected boolean isValid() {
+        return dtStartBind.isValid() && dtEndBind.isValid();
+    }
 
-    private class TransactionDataService {
+    @Override
+    protected AppModel.LogActionPage getLogPage() {
+        return AppModel.LogActionPage.TRANS;
+    }
+
+    @Override
+    protected void updateData() {
+        updateTitleUpdateInfo();
+        dataService.refresh();
+    }
+
+    private class TransactionDataService extends BaseDataService<Transaction> {
 
         private Integer iddfirm, iddclient, iddsub;
-        private LocalDate dtw, dtwend;
+        private LocalDate dtstart, dtend;
         private Integer iddazs;
 
-        public TransactionDataService(LocalDate dtw, LocalDate dtwEnd, Integer iddazs) {
-            setup(dtw, dtwEnd, iddazs);
+        public TransactionDataService(Grid<Transaction> grid) {
+            super(grid);
         }
 
-        public void setup(LocalDate dtw, LocalDate dtwEnd, Integer iddazs) {
-            this.iddfirm = getModel().getUser().getFirm().id;
-            this.iddclient = getModel().getUser().getIddClient();
-            this.iddsub = getModel().getUser().getIddClentSub();
-            this.dtw = dtw;
-            this.dtwend = dtwEnd.plusDays(1);
-            this.iddazs = iddazs;
+        @Override
+        public void setup() {
+            this.iddfirm = user.getFirm().id;
+            this.iddclient = user.getIddClient();
+            this.iddsub = user.getIddClentSub();
+            this.dtstart = TransactionUnitView.this.dtStart;
+            this.dtend = TransactionUnitView.this.dtEnd;
+            this.iddazs = TransactionUnitView.this.iddAzs;
         }
 
-        public ArrayList<Transaction> fetch(AbstractComponent errcomp, int offset, int limit, List<QuerySortOrder> order) {
-            if (errcomp != null && errcomp.getComponentError() != null) errcomp.setComponentError(null);
-            try {
-                StringBuilder sb = new StringBuilder();
-                boolean is = false;
-                for (QuerySortOrder so : order) {
-                    if (is) sb.append(", ");
-                    sb.append(so.getSorted());
-                    if (so.getDirection() == SortDirection.DESCENDING) sb.append(" DESC");
-                    is = true;
-                }
-                return getUI().getModel().loadClientTransactions(iddfirm, iddclient, iddsub, dtw, dtwend, iddazs, offset, limit, sb.toString());
-            } catch (ExError ex) {
-                if (errcomp != null) errcomp.setComponentError(new UserError(ex.getMessage()));
-                return new ArrayList<>();
-            }
+        @Override
+        protected ArrayList<Transaction> load(int offset, int limit, String sort) throws ExError {
+            return model.loadClientTransactions(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, offset, limit, sort);
         }
 
-        public int count(AbstractComponent errcomp) {
-            if (errcomp != null && errcomp.getComponentError() != null) errcomp.setComponentError(null);
-            try {
-                return getUI().getModel().loadClientTransactionsCount(iddfirm, iddclient, iddsub, dtw, dtwend, iddazs);
-            } catch (ExError ex) {
-                if (errcomp != null) errcomp.setComponentError(new UserError(ex.getMessage()));
-                return 0;
-            }
+        @Override
+        protected int count() throws ExError {
+            return model.loadClientTransactionsCount(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs);
         }
     }
 }

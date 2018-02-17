@@ -65,7 +65,7 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         getService().addSessionDestroyListener(this);
         //
         try {
-            db = new FB_Database(false, "127.0.0.1:Center", "SYSDBA", "xxxxxxxx");
+            db = new FB_Database(false, "127.0.0.1:WebCenter", "SYSDBA", "xxxxxxxx", "UTF-8", false);
         } catch (Exception ex) {
             throw new ServletException("Ошибка настройки параметров БД!", ex);
         }

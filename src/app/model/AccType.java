@@ -18,6 +18,18 @@ public enum AccType {
         this.abbreviation = abbreviation;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
     public static AccType byId(int idd) {
         for (AccType item : values()) if (item.id == idd) return item;
         return null;

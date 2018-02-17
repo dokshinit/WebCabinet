@@ -12,6 +12,8 @@ public class Acc {
     private AccType type;
     private Long dbStart, dbSale, dbPay, dbEnd; // коп. \ 10*мл.
 
+    private String title;
+
     public Acc(Integer idd, Integer iddFirm, Integer iddClient, Integer iddSub, Integer iAccType, Integer iddOil,
                Long dbStart, Long dbSale, Long dbPay, Long dbEnd) {
         this.idd = idd;
@@ -24,6 +26,8 @@ public class Acc {
         this.dbSale = dbSale;
         this.dbPay = dbPay;
         this.dbEnd = dbEnd;
+
+        this.title = "№" + idd + " (" + type.title + (type == AccType.KEEP ? (": " + oil.title) : "") + ")";
     }
 
     public Integer getIdd() {
@@ -64,5 +68,9 @@ public class Acc {
 
     public Long getDbEnd() {
         return dbEnd;
+    }
+
+    public String getTitle() {
+        return title;
     }
 }

@@ -6,17 +6,21 @@ $v-font-family: LiberationSans, Helvetica, Arial, sans-serif;
 
 @import "../valo/valo";
 
-$xv-row-height: 30px;
+$xv-row-height: 26px;
 $xv-bg-color: #4b4b65;
 
 @import "common";
 @import "views/login";
 @import "views/main";
+@import "views/base";
 @import "views/information";
 @import "views/transactions";
 @import "views/cards";
+@import "views/turnover";
+@import "views/requests";
 //
 @import "dialogs/messagedialog";
+@import "dialogs/requestdialog";
 
 // Optimize the CSS output
 $v-included-components: remove($v-included-components, accordion);
@@ -69,11 +73,16 @@ $valo-menu-background-color: #414B56;
   @include webcabinet-common;
   @include webcabinet-login-view;
   @include webcabinet-main-view;
+
+  @include webcabinet-base-unitview;
   @include webcabinet-information-unitview;
   @include webcabinet-transactions-unitview;
   @include webcabinet-cards-unitview;
+  @include webcabinet-turnover-unitview;
+  @include webcabinet-requests-unitview;
 
   @include webcabinet-message-dialog;
+  @include webcabinet-request-dialog;
 
   //  @include webcabinet-sales-view;
   //  @include webcabinet-transactions-view;

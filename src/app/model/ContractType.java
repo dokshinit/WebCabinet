@@ -18,6 +18,18 @@ public enum ContractType {
         this.abbreviation = abbreviation;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
+    }
+
     public static ContractType byId(int idd) {
         for (ContractType item : values()) if (item.id == idd) return item;
         return null;

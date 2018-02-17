@@ -1,269 +1,190 @@
 package app.view.unit;
 
-import app.AppServlet;
-import app.AppUI;
 import app.ExError;
+import app.dialog.RequestDialog;
+import app.model.AccType;
 import app.model.AppModel;
 import app.model.Card;
-import app.sizer.SizeReporter;
-import app.view.AbstractUnitView;
-import com.vaadin.data.Binder;
-import com.vaadin.data.ValidationException;
-import com.vaadin.data.ValueProvider;
+import app.model.Request;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.GridSortOrderBuilder;
-import com.vaadin.data.provider.QuerySortOrder;
-import com.vaadin.server.Responsive;
-import com.vaadin.server.UserError;
-import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.ui.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import static app.view.unit.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class CardUnitView extends VerticalLayout implements AbstractUnitView {
+public class CardUnitView extends BaseUnitView {
 
-    public AppModel getModel() {
-        return AppUI.model();
-    }
-
-    private SizeReporter gridSizeReporter;
     private Grid<Card> grid;
     private SingleSelect<Card> singleSelect;
-    private Button filterButton, reportButton;
+    private CardDataService dataService;
 
     private ComboBox<Card.WorkState> workCombo;
-    private DateField dtwField;
 
     private Card.WorkState workState;
-    private LocalDate dtw;
 
     public CardUnitView() {
-        setSizeFull();
-        Responsive.makeResponsive(this);
-        addStyleName("cards-UV");
-        setMargin(false);
-        setSpacing(false);
-
-        workCombo = null;
-        dtw = LocalDate.now().minusYears(1).withDayOfMonth(1);
-
-        addComponent(buildToolbar());
-
-        grid = buildGrid();
-        singleSelect = grid.asSingleSelect();
-        addComponent(grid);
-        setExpandRatio(grid, 1);
-
-        addLayoutClickListener((e) -> fireOnLayoutClick());
+        super("card", "Топливные карты");
     }
 
     @Override
-    public AppUI getUI() {
-        return (AppUI) super.getUI();
+    protected void initVars() {
+        super.initVars();
+
+        workState = Card.WorkState.WORK;
+        dtStart = LocalDate.now();
     }
 
-    private Binder<CardUnitView> dtwBind = new Binder<>();
+    @Override
+    protected void buildHeadToolbar() {
+        buildHeadToolbarLayout();
+        buildWorkStateCombo();
+        buildHeadToolbarDtwForDate();
+        buildHeadToolbarButtons();
+    }
 
-    private Component buildToolbar() {
-        VerticalLayout header = style(new VerticalLayout(), "header-L");
-        header.setSpacing(false);
-
-        Label title = style(new Label("Топливные карты"), "title");
-        title.setSizeUndefined();
-
+    private void buildWorkStateCombo() {
         workCombo = style(new ComboBox<>("Состояние"), "small");
         workCombo.setTextInputAllowed(false);
         workCombo.setEmptySelectionAllowed(true);
         workCombo.setEmptySelectionCaption("< Все >");
-        workCombo.setItemCaptionGenerator(Card.WorkState::getTitle);
-        workCombo.addValueChangeListener((e) -> fireOnWorkStateChanged(e.getValue()));
+        workCombo.setItemCaptionGenerator(Card.WorkState::getTitleForMany);
         workCombo.setDataProvider(DataProvider.ofItems(Card.WorkState.values()));
+        workCombo.setSelectedItem(workState);
+        workCombo.addValueChangeListener((e) -> fireOnWorkStateChanged(e.getValue()));
+        workCombo.setWidth("140px");
 
-        dtwField = new DateField("Дата", dtw);
-        dtwField.addStyleName("dtw");
-        dtwField.addStyleName("small");
-        dtwField.addValueChangeListener((e) -> fireOnDtwChanged(0));
-        dtwField.setPlaceholder("Дата");
-        dtwField.setDateFormat("dd/MM/yyyy");
-        dtwBind.forField(dtwField)
-                .asRequired("Обязательное поле")
-                .bind((v) -> dtw, (c, v) -> dtw = v);
+        HorizontalLayout comL = new HorizontalLayout(workCombo);
+        comL.setMargin(false);
 
-        HorizontalLayout dtwL = new HorizontalLayout(dtwField, workCombo);
-        dtwL.setMargin(false);
-
-        filterButton = new Button("Фильтр");
-        filterButton.addStyleName("small");
-        filterButton.setDescription("Применить фильтр");
-        filterButton.addClickListener(event -> fireOnFilterApply());
-        filterButton.setEnabled(false);
-
-        reportButton = new Button("Отчёт"); // FILE_TEXT FILE_ZIP NEWSPAPER
-        reportButton.addStyleName("small");
-        reportButton.setDescription("Сформировать отчёт");
-        reportButton.addClickListener(event -> fireOnCreateReport());
-        reportButton.setEnabled(false);
-
-        HorizontalLayout btnL = new HorizontalLayout(filterButton, reportButton);
-        btnL.addStyleName("buttons-L");
-        btnL.setMargin(false);
-        btnL.setExpandRatio(reportButton, 1.0f);
-
-        CssLayout tools = new CssLayout(dtwL, btnL);
-        Responsive.makeResponsive(tools);
-        tools.addStyleName("toolbar-L");
-
-        header.addComponents(title, tools);
-        header.setComponentAlignment(title, Alignment.MIDDLE_LEFT);
-        header.setComponentAlignment(tools, Alignment.MIDDLE_RIGHT);
-
-        return header;
-    }
-
-    private CardDataService dataService;
-
-    private <V> Grid.Column<Card, V> cardColumn(ValueProvider<Card, V> prov, ValueProvider<V, String> pres,
-                                                String id, String title, StyleGenerator<Card> style, int wmin) {
-        Grid.Column<Card, V> c = gridColumn(grid, prov, pres, id, title, style);
-        c.setMinimumWidth(wmin);
-        c.setExpandRatio(wmin);
-        return c;
+        toolbarL.addComponent(comL);
     }
 
     @SuppressWarnings("unchecked")
-    private Grid<Card> buildGrid() {
-        grid = new Grid<>();
-        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
+    @Override
+    protected void buildBodyContent() {
+        grid = style(new Grid<>(), "card-table");
         grid.setSizeFull();
-        grid.addStyleName("cards-table");
-
         Grid.Column<Card, String> c1;
         Grid.Column<Card, Card.WorkState> c2;
-
-        cardColumn(Card::getDtw, Helper::fmtDate8, "DTW", "Начало", ST_AL_CENTER, 90).setHidable(true);
-        cardColumn(Card::getDtwEnd, Helper::fmtDate8, "DTWEND", "Завершение", ST_AL_CENTER, 90).setHidable(true).setHidden(true);
-        c1 = cardColumn(Card::getIddCard, null, "IDD", "№", ST_AL_CENTER, 90);
-        cardColumn(Card::getAccType, v -> v.abbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, 50).setHidable(true);
-        c2 = cardColumn(Card::getWorkState, v -> v.title, "IBWORK", "Состояние", ST_AL_CENTER, 90).setHidable(true);
-        cardColumn(Card::getDriver, null, "CDRIVER", "Водитель", ST_AL_LEFT, 100);
-        cardColumn(Card::getCar, null, "CCAR", "Автомобиль", ST_AL_LEFT, 100);
-        cardColumn(Card::getDbDayLimit, v -> v == 0 ? "---" : fmtN2(v), "DBDAYLIMIT", "Лимит", ST_AL_RIGHT, 60).setHidable(true);
-        cardColumn(Card::getComment, null, "CCOMMENT", "Информация", ST_AL_LEFT, 100).setHidable(true);
-
+        column(grid, Card::getDtw, Helper::fmtDate8, "DTW", "Изменена", ST_AL_CENTER, -90, null).setHidable(true);
+        //column(grid, Card::getDtwEnd, Helper::fmtDate8, "DTWEND", "Завершение", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
+        c1 = column(grid, Card::getIddCard, null, "IDD", "№", ST_AL_CENTER, -90, null);
+        column(grid, Card::getAccType, AccType::getAbbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, -50, null).setHidable(true);
+        c2 = column(grid, Card::getWorkState, Card.WorkState::getTitle, "IBWORK", "Состояние", ST_AL_CENTER, -90, null).setHidable(true);
+        column(grid, Card::getDtPay, Helper::fmtDate8, "DTPAY", "Покупка", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
+        column(grid, Card::getDriver, null, "CDRIVER", "Водитель", ST_AL_LEFT, -100, null);
+        column(grid, Card::getCar, null, "CCAR", "Автомобиль", ST_AL_LEFT, -100, null);
+        column(grid, Card::getDbDayLimit, v -> v == 0 ? "---" : fmtN2(v), "DBDAYLIMIT", "Лимит", ST_AL_RIGHT, -60, null).setHidable(true);
+        column(grid, Card::getComment, null, "CCOMMENT", "Информация", ST_AL_LEFT, -100, null).setHidable(true);
+        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.setColumnReorderingAllowed(true);
+        setRowHeight(grid);
         grid.recalculateColumnWidths();
+        singleSelect = grid.asSingleSelect();
 
-        dataService = new CardDataService(dtw, workState);
-        DataProvider<Card, Void> dataProvider = DataProvider.fromCallbacks(
-                q -> dataService.fetch(filterButton, q.getOffset(), q.getLimit(), q.getSortOrders()).stream(),
-                q -> dataService.count(filterButton)
+        grid.addItemClickListener(this::fireOnCardSelected);
+        singleSelect.addValueChangeListener(e -> {
+            if (e.getOldValue() != null && e.getValue() == null) singleSelect.setValue(e.getOldValue());
+        });
 
-        );
-        grid.setDataProvider(dataProvider);
+        dataService = new CardDataService(grid);
         grid.setSortOrder(new GridSortOrderBuilder().thenDesc(c2).thenAsc(c1));
+        addSizeReporterForExpandGridColumns(grid);
 
-        gridSizeReporter = new SizeReporter(grid);
-        gridSizeReporter.addResizeListener((e) -> updateGridColumns(grid, gridSizeReporter));
-
-        return grid;
+        bodyL.addComponent(grid);
+        rootL.setSizeFull();
+        rootL.setExpandRatio(bodyL, 1);
+        bodyL.setSizeFull();
+        bodyL.setExpandRatio(grid, 1);
     }
 
-    public void fireOnLayoutClick() {
-        getUI().closeOpenedWindows();
+    private void fireOnCardSelected(Grid.ItemClick<Card> e) {
+        if (e.getMouseEventDetails().isDoubleClick()) {
+        }
     }
 
     private void fireOnWorkStateChanged(Card.WorkState ws) {
-        if (dtwBind.isValid()) {
-            filterButton.setEnabled(true);
-            reportButton.setEnabled(true);
-        }
         workState = ws;
+        toolbarParamsChanged = true;
+        updateButtonsState(!isValid());
+    }
+
+    @Override
+    public void fireOnDateChanged(int id) {
+        fireOnDateChangedForDate();
+    }
+
+    @Override
+    protected void fireOnCreateReport() {
+        if (!checkForStartAndFix(dtStart, null)) return;
+
+        HashMap<String, String> params = new HashMap<>();
+        String s1;
+        params.put("dtw", s1 = fmtDate8(dtStart));
+        params.put("idWorkState", workState == null ? "" : "" + workState.id);
+        //
+        Request r = Request.newReport(Request.ReportType.CARD,
+                "на " + s1 + (workState == null ? "" : " (" + workState.titleForMany + ")"), params);
+        RequestDialog dlg = new RequestDialog(r);
+        getUI().addWindow(dlg);
     }
 
 
-    private void fireOnDtwChanged(int id) {
-        // Проверка валидаторов.
-        try {
-            dtwBind.writeBean(this);
-            filterButton.setEnabled(true);
-            reportButton.setEnabled(true);
-        } catch (ValidationException ex) {
-            filterButton.setEnabled(false);
-            reportButton.setEnabled(false);
-        }
+    @Override
+    protected void validate() {
+        dtStartBind.validate();
     }
 
-    private void fireOnFilterApply() {
-        dtwBind.validate();
-        if (dtwBind.isValid()) {
-            dataService.setup(dtw, workState);
-            grid.setDataProvider(grid.getDataProvider());
-            grid.recalculateColumnWidths();
-            filterButton.setEnabled(false);
-        } else {
-            filterButton.setEnabled(false);
-            reportButton.setEnabled(false);
-        }
+    @Override
+    protected boolean isValid() {
+        return dtStartBind.isValid();
     }
 
-    private void fireOnCreateReport() {
-        for (Grid.Column<Card, ?> c : grid.getColumns()) {
-            AppServlet.logger.infof("GRID-COLUMN: name='%s' width=%f", c.getId(), c.getWidth());
-        }
+    @Override
+    protected AppModel.LogActionPage getLogPage() {
+        return AppModel.LogActionPage.CARD;
     }
 
+    @Override
+    protected void updateData() {
+        updateTitleUpdateInfo();
+        dataService.refresh();
+    }
 
-    private class CardDataService {
+    private class CardDataService extends BaseDataService<Card> {
 
         private Integer iddfirm, iddclient, iddsub;
         private LocalDate dtw;
-        private Integer iwork;
+        private Card.WorkState workstate;
 
-        public CardDataService(LocalDate dtw, Card.WorkState workstate) {
-            setup(dtw, workstate);
+        public CardDataService(Grid<Card> grid) {
+            super(grid);
         }
 
-        public void setup(LocalDate dtw, Card.WorkState workstate) {
-            this.iddfirm = getModel().getUser().getFirm().id;
-            this.iddclient = getModel().getUser().getIddClient();
-            this.iddsub = getModel().getUser().getIddClentSub();
-            this.dtw = dtw;
-            this.iwork = workstate == null ? null : workstate.id;
+        @Override
+        public void setup() {
+            this.iddfirm = user.getFirm().id;
+            this.iddclient = user.getIddClient();
+            this.iddsub = user.getIddClentSub();
+            this.dtw = CardUnitView.this.dtStart;
+            this.workstate = CardUnitView.this.workState;
         }
 
-        public ArrayList<Card> fetch(AbstractComponent errcomp, int offset, int limit, List<QuerySortOrder> order) {
-            if (errcomp != null && errcomp.getComponentError() != null) errcomp.setComponentError(null);
-            try {
-                StringBuilder sb = new StringBuilder();
-                boolean is = false;
-                for (QuerySortOrder so : order) {
-                    if (is) sb.append(", ");
-                    sb.append(so.getSorted());
-                    if (so.getDirection() == SortDirection.DESCENDING) sb.append(" DESC");
-                    is = true;
-                }
-                return getModel().loadClientCards(iddfirm, iddclient, iddsub, dtw, iwork, offset, limit, sb.toString());
-            } catch (ExError ex) {
-                if (errcomp != null) errcomp.setComponentError(new UserError(ex.getMessage()));
-                return new ArrayList<>();
-            }
+        @Override
+        protected ArrayList<Card> load(int offset, int limit, String sort) throws ExError {
+            return model.loadClientCards(iddfirm, iddclient, iddsub, dtw, workstate, offset, limit, sort);
         }
 
-        public int count(AbstractComponent errcomp) {
-            if (errcomp != null && errcomp.getComponentError() != null) errcomp.setComponentError(null);
-            try {
-                return getModel().loadClientCardsCount(iddfirm, iddclient, iddsub, dtw, iwork);
-            } catch (ExError ex) {
-                if (errcomp != null) errcomp.setComponentError(new UserError(ex.getMessage()));
-                return 0;
-            }
+        @Override
+        protected int count() throws ExError {
+            return model.loadClientCardsCount(iddfirm, iddclient, iddsub, dtw, workstate);
         }
     }
 }

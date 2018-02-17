@@ -1,5 +1,6 @@
 package app;
 
+import app.model.AppModel;
 import app.view.MainView;
 import app.view.UnitViewType;
 import com.vaadin.navigator.Navigator;
@@ -38,7 +39,7 @@ public class AppNavigator extends Navigator {
                 String name = event.getViewName();
                 if (name.isEmpty()) name = DEFAULT_VIEW.getViewName();
                 UnitViewType view = UnitViewType.getByViewName(name);
-                //AppServlet.logger.infof("NavigatorViewChange: %s", view);
+                //AppServlet.logger.infof("NavigatorView: After change: %s", view);
                 mainView.fireOnViewChanged(view, event.getNewView());
             }
         });
@@ -100,4 +101,20 @@ public class AppNavigator extends Navigator {
             }
         });
     }
+
+    @Override
+    public AppUI getUI() {
+        return (AppUI) super.getUI();
+    }
+
+//    @Override
+//    public void navigateTo(String navigationState) {
+//        String name = navigationState;
+//        if (name.isEmpty()) name = DEFAULT_VIEW.getViewName();
+//        UnitViewType v = UnitViewType.getByViewName(name);
+//        if (v == null) name = DEFAULT_VIEW.getViewName();
+//        v = UnitViewType.getByViewName(name);
+//        getUI().logAction(v, AppModel.LogActionType.OPENPAGE);
+//        super.navigateTo(navigationState);
+//    }
 }

@@ -247,5 +247,19 @@
     height: $xv-row-height;
     padding: 0 5px;
   }
+  .v-grid-footer {
+    .v-grid-cell {
+      text-align: center;
+      line-height: $xv-row-height;
+      height: $xv-row-height;
+      padding: 0 5px;
+      .v-grid-column-footer-content {
+        line-height: inherit;
+      }
+    }
+  }
 
+  .v-filterselect-suggestpopup {
+    font-size: 15px;
+  }
 }

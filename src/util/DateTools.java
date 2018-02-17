@@ -310,49 +310,107 @@ public class DateTools {
     public static final String daysOfWeekShort[] = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
     public static final String daysOfWeek[] = {"понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресение"};
 
+    /** Возвращает день недели начиная с понедельника (!): пн=1 ... вс=7, 0-ошибка. */
     public static int getDayOfWeekNumber(Date date) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
-        return c.get(Calendar.DAY_OF_WEEK);
+        switch (c.get(Calendar.DAY_OF_WEEK)) {
+            case Calendar.MONDAY:
+                return 1;
+            case Calendar.TUESDAY:
+                return 2;
+            case Calendar.WEDNESDAY:
+                return 3;
+            case Calendar.THURSDAY:
+                return 4;
+            case Calendar.FRIDAY:
+                return 5;
+            case Calendar.SATURDAY:
+                return 6;
+            case Calendar.SUNDAY:
+                return 7;
+        }
+        return 0;
     }
 
     public static String getDayOfWeekShortTitle(Date date) {
         if (date == null) return "";
-        return daysOfWeekShort[getDayOfWeekNumber(date)];
+        return daysOfWeekShort[getDayOfWeekNumber(date) - 1];
     }
 
     public static String getDayOfWeekTitle(Date date) {
         if (date == null) return "";
-        return daysOfWeek[getDayOfWeekNumber(date)];
+        return daysOfWeek[getDayOfWeekNumber(date) - 1];
     }
 
+    public static final String monthsOfYear[] = {"январь", "февраль", "март", "апрель", "май", "июнь",
+            "июль", "август", "сентябрь", "октябрь", "ноябрь", "девабрь"};
+    public static final String monthsOfYearTh[] = {"января", "февраля", "марта", "апреля", "мая", "июня",
+            "июля", "августа", "сентября", "октября", "ноября", "девабря"};
 
+    /** Возвращает номер месяца из даты. */
+    public static int getMonthOfYear(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c.get(Calendar.MONTH) + 1;
+    }
+
+    /** Возвращает номер дня месяца из даты. */
+    public static int getDayOfMonth(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c.get(Calendar.DAY_OF_MONTH);
+    }
+
+    /**
+     * Возвращает название меяца для его номера.
+     *
+     * @param month Номер месяца 1-12.
+     * @param th    true - в родительском падеже, false - в именительном.
+     * @return Наименование месяца.
+     */
+    public static String getMonthOfYearTitle(int month, boolean th) {
+        return th ? monthsOfYearTh[month - 1] : monthsOfYear[month - 1];
+    }
+
+    /**
+     * Возвращает название меяца для даты.
+     *
+     * @param date Дата.
+     * @param th   true - в родительском падеже, false - в именительном.
+     * @return Наименование месяца.
+     */
+    public static String getMonthOfYearTitle(Date date, boolean th) {
+        if (date == null) return "";
+        return getMonthOfYearTitle(getMonthOfYear(date), th);
+    }
     public static Date asDate(LocalTime localTime) {
+        if (localTime == null) return null;
         Date dt = Date.from(localTime.atDate(LocalDate.of(1, 1, 2000)).atZone(ZoneId.systemDefault()).toInstant());
         return DateTools.getTimeWODate(dt);
     }
 
     public static Date asDate(LocalDate localDate) {
-        return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        return localDate == null ? null : Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static Date asDate(LocalDateTime localDateTime) {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        return localDateTime == null ? null : Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public static ZonedDateTime asZonedDataTime(Date date) {
-        return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault());
+        return  date == null ? null : Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault());
     }
 
     public static LocalTime asLocalTime(Date date) {
-        return asZonedDataTime(date).toLocalTime();
+        return date == null ? null : asZonedDataTime(date).toLocalTime();
     }
 
     public static LocalDate asLocalDate(Date date) {
-        return asZonedDataTime(date).toLocalDate();
+        return date == null ? null : asZonedDataTime(date).toLocalDate();
     }
 
     public static LocalDateTime asLocalDateTime(Date date) {
-        return asZonedDataTime(date).toLocalDateTime();
+        return date == null ? null : asZonedDataTime(date).toLocalDateTime();
     }
 }

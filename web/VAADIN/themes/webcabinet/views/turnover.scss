@@ -1,0 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@mixin webcabinet-turnover-unitview {
+
+  .turnover-UV {
+
+    .body-L {
+      max-width: 610px;
+
+      .v-slot-start-table, .v-slot-sale-table, .v-slot-pay-table, .v-slot-end-table {
+        padding-bottom: 5px;
+      }
+
+      .fixdate {
+        font-weight: bold;
+        //color: lighten($xv-bg-color, 10%);
+      }
+    }
+  }
+}

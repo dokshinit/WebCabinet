@@ -9,6 +9,8 @@ public enum Oil {
     AI92(4, "Бензин АИ-92", "АИ-92"),
     AI95(5, "Бензин АИ-95", "АИ-95"),
     DT(6, "Дизельное топливо", "ДТ"),
+    OILAVTOL(11, "Масло М8В АВТОЛ", "М8В"),
+    OILKAMAZ(12, "Масло М10Г2К КАМАЗ", "М10Г2К"),
     GAS(15, "Сжиженный газ", "СУГ");
 
     public final int id;
@@ -18,6 +20,18 @@ public enum Oil {
         this.id = idd;
         this.title = title;
         this.abbreviation = abbreviation;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getAbbreviation() {
+        return abbreviation;
     }
 
     public static Oil byId(int idd) {

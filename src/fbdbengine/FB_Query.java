@@ -235,7 +235,7 @@ public class FB_Query implements Closeable {
         } else if (clazz == LocalDate.class) {
             value = new java.sql.Date(DateTools.asDate((LocalDate) value).getTime());
         } else if (clazz == LocalDateTime.class) {
-            value = new java.sql.Date(DateTools.asDate((LocalDate) value).getTime());
+            value = new java.sql.Date(DateTools.asDate((LocalDateTime) value).getTime());
         }
         return value;
     }

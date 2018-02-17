@@ -1,0 +1,124 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@mixin webcabinet-base-unitview {
+
+  .UV {
+
+    .root-L {
+      min-width: 100%;
+    }
+
+    .head-L {
+      width: 100%;
+      padding: 0px;
+
+      .title-L {
+        width: 100%;
+        padding: 5px;
+        background: lighten($xv-bg-color, 55%);
+        color: $xv-bg-color;
+        line-height: 31px; // 41-5-5;
+
+        .v-spacing {
+          width: 5px;
+        }
+        .v-slot {
+          vertical-align: middle;
+        }
+        .title {
+          //width: 100%;
+          font-size: 18px;
+          font-weight: bold;
+          vertical-align: middle;
+        }
+        .info {
+          font-size: 14px;
+          vertical-align: middle;
+        }
+        .v-slot-update {
+          float: right;
+
+          .update {
+            //vertical-align: middle;
+          }
+        }
+      }
+
+      .toolbar-L {
+        width: 100%;
+        padding: 5px;
+        //background: lightgoldenrodyellow;
+
+        .v-horizontallayout {
+          padding: 0 5px 0 0;
+          vertical-align: bottom;
+
+          .v-spacing {
+            width: 5px;
+          }
+        }
+
+        .buttons-L {
+          padding-top: 5px;
+          //padding-bottom: 5px;
+        }
+
+        .v-caption {
+          color: lighten($xv-bg-color, 20%);
+          font-size: 12px;
+          padding: 0px;
+          vertical-align: bottom;
+        }
+
+        .v-datefield, .v-filterselect {
+          width: 130px;
+        }
+      }
+    }
+
+    .body-L {
+      min-width: 100%;
+      padding: 5px;
+      vertical-align: middle;
+
+      .hhh {
+        font-weight: bold;
+        color: lighten($xv-bg-color, 20%);
+      }
+
+      .star {
+        color: #FF4000;
+      }
+
+      .neg {
+        color: #E02020;
+      }
+
+      .v-grid-tablewrapper {
+        position: relative;
+      }
+      .v-grid-cell-focused:before {
+        display: none !important;
+      }
+
+      .summary {
+        font-weight: bold;
+        .right {
+          text-align: right;
+        }
+        .left {
+          text-align: left;
+        }
+      }
+
+      .v-slot-note {
+        line-height: 21px;
+      }
+      .note {
+        vertical-align: middle;
+        line-height: 100%;
+        font-size: 13px;
+        color: lighten($xv-bg-color, 20%);
+      }
+    }
+  }
+}

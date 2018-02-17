@@ -1,5 +1,7 @@
 package app.model;
 
+import java.time.LocalDate;
+
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (28.11.17).
  */
@@ -22,8 +24,10 @@ public class User {
     private Boolean clientFond;
     private ClientWorkState clientWork;
     private Long clientCredit;
+    private LocalDate dtStart;
 
     // Информация о пользователе.
+    private int id;
     private String role;
     private String login;
     private String password;
@@ -33,6 +37,7 @@ public class User {
     private boolean isAuthorized;
 
     public User() {
+        id = 0;
         firm = null;
         iddClient = iddClentSub = 0;
         clientINN = "";
@@ -41,6 +46,10 @@ public class User {
         role = login = password = "";
         firstName = lastName = "";
         isAuthorized = false;
+    }
+
+    public synchronized int getId() {
+        return id;
     }
 
     public synchronized Firm getFirm() {
@@ -95,6 +104,10 @@ public class User {
         return clientCredit;
     }
 
+    public synchronized LocalDate getDtStart() {
+        return dtStart;
+    }
+
     public synchronized String getRole() {
         return role;
     }
@@ -124,12 +137,13 @@ public class User {
     }
 
     // Только для вызова из модели!
-    synchronized void login(int iddFirm, int iddClient, int iddClentSub,
+    synchronized void login(int id, int iddFirm, int iddClient, int iddClentSub,
                             String clientINN, String clientName, String clientTitle, String clientSubTitle,
                             String clientAddress, String clientEmail, String clientPhone,
-                            Integer clientFond, Integer clientWork, Long clientCredit,
+                            Integer clientFond, Integer clientWork, Long clientCredit, LocalDate dtStart,
                             String role, String firstName, String lastName) {
 
+        this.id = id;
         this.firm = Firm.byId(iddFirm);
         this.iddClient = iddClient;
         this.iddClentSub = iddClentSub;
@@ -143,6 +157,7 @@ public class User {
         this.clientFond = clientFond != 0;
         this.clientWork = clientWork < 0 ? ClientWorkState.NO : (clientWork > 0 ? ClientWorkState.YES : ClientWorkState.LOCK);
         this.clientCredit = clientCredit;
+        this.dtStart = dtStart;
         this.role = role;
         this.firstName = firstName;
         this.lastName = lastName;

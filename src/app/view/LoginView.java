@@ -40,6 +40,11 @@ public class LoginView extends Panel {
         addStyleName("login-view");
     }
 
+    @Override
+    public AppUI getUI() {
+        return (AppUI) super.getUI();
+    }
+
     String login = "12345", password = "1234";
     Binder<String> loginBind = new Binder<>();
     Binder<String> passwordBind = new Binder<>();
@@ -132,7 +137,6 @@ public class LoginView extends Panel {
 
         // Авторизация.
         AppModel m = AppUI.model();
-        boolean isold = m.isUserAuthorized();
         try {
             m.loginUser(loginField.getValue(), passwordField.getValue());
             signinButton.setComponentError(null);
@@ -148,7 +152,8 @@ public class LoginView extends Panel {
             signinButton.setComponentError(new UserError(ex.getMessage()));
         }
         // При изменении состояния авторизации - обновляем контент.
-        if (m.isUserAuthorized() != isold) {
+        if (m.isUserAuthorized()) {
+            getUI().logAction(AppModel.LogActionPage.LOGIN, AppModel.LogActionType.LOGIN);
             AppUI.applyForUIs((curui, ui) -> {
                 ui.updateContent();
                 if (ui != curui) ui.push();

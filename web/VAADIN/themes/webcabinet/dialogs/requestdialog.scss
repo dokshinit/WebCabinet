@@ -1,0 +1,94 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Стили для диалога сообщений.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+@mixin webcabinet-request-dialog {
+
+  .request-dialog {
+    @include valo-window();
+    max-width: 100%;
+    min-width: 300px !important;
+
+    .v-window-outerheader {
+      color: $xv-bg-color;
+      font-weight: bold;
+      background: lighten($xv-bg-color, 50%);
+
+      .v-window-header {
+        color: inherit;
+        padding-left: 6px;
+
+        > .v-icon {
+          width: 24px;
+          height: 24px;
+          margin-right: 4px;
+          margin-top: ($v-unit-size - 1px - 24px) / 2;
+          vertical-align: top;
+        }
+      }
+      .v-window-closebox {
+        color: inherit;
+        background: inherit;
+      }
+    }
+
+    .root-L {
+      width: 100%;
+      height: 100%;
+
+      .form-L {
+        width: 100%;
+
+        > .v-spacing {
+          height: 5px;
+        }
+
+        .line-L {
+          width: 100%;
+
+          .line-title {
+            margin-right: 10px;
+            padding: 3px 0px;
+            font-weight: bold;
+            color: lighten($xv-bg-color, 20%);
+            text-align: right;
+          }
+          .v-slot-line-text {
+            border: 1px solid lighten($xv-bg-color, 55%);;
+            border-radius: 5px;
+          }
+          .line-text {
+            padding: 3px 5px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+          }
+          .line-button {
+            margin-left: 5px;
+            padding-left: 6px;
+            padding-right: 6px;
+          }
+          .report-mode {
+            width: 100%;
+          }
+        }
+      }
+
+      .button-L {
+        margin-top: 5px;
+        width: 100%;
+      }
+    }
+  }
+
+  .request-param-popup {
+    color: #909090
+  }
+
+  .request-param-id {
+    color: #90D0FF;
+    font-weight: bold;
+  }
+
+  .request-param-value {
+    color: #FFFF60;
+  }
+}

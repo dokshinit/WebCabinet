@@ -138,4 +138,11 @@ public class MessageDialog extends Window implements Button.ClickListener {
         return dlg;
     }
 
+    public static MessageDialog showError(UI ui, String title, String message) {
+        MessageDialog dlg = new MessageDialog(Type.ERROR, title, message);
+        if (ui == null) ui = AppUI.ui();
+        ui.addWindow(dlg);
+        return dlg;
+    }
+
 }
