@@ -45,7 +45,7 @@ public class LoginView extends Panel {
         return (AppUI) super.getUI();
     }
 
-    String login = "12345", password = "1234";
+    String login = "", password = "";
     Binder<String> loginBind = new Binder<>();
     Binder<String> passwordBind = new Binder<>();
 

@@ -5,10 +5,13 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.server.*;
 import fbdbengine.FB_Database;
 import org.jsoup.nodes.Element;
+import xconfig.XConfig;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,13 +20,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("serial")
 public class AppServlet extends VaadinServlet implements SessionInitListener, SessionDestroyListener {
 
-    /** Логгер. */
+    /**
+     * Логгер.
+     */
     public static final LoggerExt logger = LoggerExt.getNewLogger("AppServlet").enable(true);
 
-    /** Карта активных соединений. */
+    /**
+     * Карта активных соединений.
+     */
     private final ConcurrentHashMap<String, VaadinSession> sessions = new ConcurrentHashMap<>();
 
     private FB_Database db;
+    private String catalinaHome, appHome, answersPath;
 
     public FB_Database getDB() {
         return db;
@@ -37,9 +45,17 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         return getApp().getDB();
     }
 
+    public static String getAnswersPath() {
+        return getApp().answersPath;
+    }
+
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
-        logger.toFile(System.getProperty("catalina.base") + "/logs");
+        catalinaHome = System.getProperty("catalina.base");
+        appHome = servletConfig.getServletContext().getRealPath("/");
+
+        logger.toFile(catalinaHome + "/logs");
+
         super.init(servletConfig);
 
         CustomizedSystemMessages messages = new CustomizedSystemMessages();
@@ -63,9 +79,31 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         logger.infof("Servlet started!");
         getService().addSessionInitListener(this);
         getService().addSessionDestroyListener(this);
-        //
+
+        String base, user, password;
+
+        logger.infof("Загрузка конфигурации...");
         try {
-            db = new FB_Database(false, "127.0.0.1:WebCenter", "SYSDBA", "xxxxxxxx", "UTF-8", false);
+            XConfig cfg = new XConfig();
+            cfg.load(appHome + File.separator + "app.config");
+
+            base = cfg.getKey("db.host", "127.0.0.1") + ":" + cfg.getKey("db.alias", "WebCenter");
+            user = cfg.getKey("db.user", "WEB");
+            password = cfg.getKey("db.password", "xxxxxxxx");
+            answersPath = cfg.getKey("requestprocessor.answerspath", appHome + File.separator + "answers");
+
+        } catch (Exception ex) {
+            base = "127.0.0.1:WebCenter";
+            user = "WEB";
+            password = "xxxxxxxx";
+            answersPath = appHome + File.separator + "answers";
+
+            logger.infof("Ошибка загрузки конфигурации: %s! Приняты параметры по умолчанию!", ex.getMessage());
+        }
+
+
+        try {
+            db = new FB_Database(false, base, user, password, "UTF-8", false);
         } catch (Exception ex) {
             throw new ServletException("Ошибка настройки параметров БД!", ex);
         }

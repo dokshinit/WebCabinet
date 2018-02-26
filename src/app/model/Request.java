@@ -1,5 +1,6 @@
 package app.model;
 
+import app.AppServlet;
 import util.NumberTools;
 
 import java.io.File;
@@ -284,7 +285,8 @@ public class Request {
     }
 
     public String getAnswerPath(User user) {
-        return "/home/work/dev/JavaFX/WebRequestProcessor/answers" + File.separator + user.getIddClient() + (user.getIddClentSub() != 0 ? "-" + user.getIddClentSub() : "");
+        return AppServlet.getAnswersPath() + File.separator
+                + user.getIddClient() + (user.getIddClentSub() != 0 ? "-" + user.getIddClentSub() : "");
     }
 
     public Integer getFileSize() {
