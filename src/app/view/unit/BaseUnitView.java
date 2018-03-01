@@ -6,9 +6,8 @@ import app.dialog.MessageDialog;
 import app.model.*;
 import app.sizer.SizeReporter;
 import app.view.AbstractUnitView;
-import com.vaadin.data.Binder;
-import com.vaadin.data.ValidationException;
-import com.vaadin.data.ValueProvider;
+import com.google.gwt.validation.client.impl.Validation;
+import com.vaadin.data.*;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.LayoutEvents;
@@ -122,6 +121,36 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
     protected void buildHeadToolbar() {
     }
 
+    protected ValidationResult validatorDtwStart(LocalDate dt, ValueContext valueContext) {
+        if (user.getDtStart() != null && dt.isBefore(user.getDtStart()))
+            return ValidationResult.error("Меньше даты начала учёта по клиенту!");
+        if (dtFix != null && dt.isAfter(dtFix))
+            return ValidationResult.error("Больше даты актуальности!");
+
+        if (dtwEndField.getValue() != null) {
+            if (dt.compareTo(dtwEndField.getValue()) > 0)
+                return ValidationResult.error("Больше даты конца периода!");
+            if (!dt.plusMonths(3).isAfter(dtwEndField.getValue()))
+                return ValidationResult.error("Период больше трёх месяцев!");
+        }
+        return ValidationResult.ok();
+    }
+
+    protected ValidationResult validatorDtwEnd(LocalDate dt, ValueContext valueContext) {
+        if (user.getDtStart() != null && dt.isBefore(user.getDtStart()))
+            return ValidationResult.error("Меньше даты начала учёта по клиенту!");
+        if (dtFix != null && dt.isAfter(dtFix))
+            return ValidationResult.error("Больше даты актуальности!");
+
+        if (dtwField.getValue() != null) {
+            if (dt.compareTo(dtwField.getValue()) < 0)
+                return ValidationResult.error("Меньше даты начала периода!");
+            if (!dt.minusMonths(3).isBefore(dtwField.getValue()))
+                return ValidationResult.error("Период больше трёх месяцев!");
+        }
+        return ValidationResult.ok();
+    }
+
     protected void buildHeadToolbarDtwsForPeriod() {
         dtwField = style(new DateField("Начало периода", dtStart), "dtStart", "small");
         dtwField.addValueChangeListener((e) -> fireOnDateChanged(0));
@@ -129,9 +158,7 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
         dtwField.setDateFormat("dd/MM/yyyy");
         dtStartBind.forField(dtwField)
                 .asRequired("Обязательное поле")
-                .withValidator((v) -> !(dtwEndField.getValue() != null && (v.compareTo(dtwEndField.getValue()) > 0)), "Позже даты конца периода!")
-                .withValidator((v) -> !v.isBefore(user.getDtStart()), "Раньше даты начала учёта клиента!")
-                .withValidator((v) -> !(dtwEndField.getValue() != null && (!v.plusMonths(3).isAfter(dtwEndField.getValue()))), "Период больше трёх месяцев!")
+                .withValidator(this::validatorDtwStart)
                 .bind((v) -> dtStart, (c, v) -> dtStart = v);
 
         dtwEndField = style(new DateField("Конец периода", dtEnd), "dtStart", "small");
@@ -140,9 +167,7 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
         dtwEndField.setDateFormat("dd/MM/yyyy");
         dtEndBind.forField(dtwEndField)
                 .asRequired("Обязательное поле")
-                .withValidator((v) -> !(dtwField.getValue() != null && (v.compareTo(dtwField.getValue()) < 0)), "Раньше даты начала периода!")
-                .withValidator((v) -> !v.isBefore(user.getDtStart()), "Раньше даты начала учёта клиента!")
-                .withValidator((v) -> !(dtwField.getValue() != null && (!v.minusMonths(3).isBefore(dtwField.getValue()))), "Период больше трёх месяцев!")
+                .withValidator(this::validatorDtwEnd)
                 .bind((v) -> dtEnd, (c, v) -> dtEnd = v);
 
         dtwsL = style(new HorizontalLayout(dtwField, dtwEndField), "dtws-L");
@@ -158,8 +183,7 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
         dtwField.setDateFormat("dd/MM/yyyy");
         dtStartBind.forField(dtwField)
                 .asRequired("Обязательное поле")
-                .withValidator((v) -> !(v.compareTo(LocalDate.now()) > 0), "Позже текущей даты!")
-                .withValidator((v) -> !v.isBefore(user.getDtStart()), "Раньше даты начала учёта клиента!")
+                .withValidator(this::validatorDtwStart)
                 .bind((v) -> dtStart, (c, v) -> dtStart = v);
 
         dtwsL = style(new HorizontalLayout(dtwField), "dtws-L");
@@ -227,6 +251,11 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
     protected Binder<BaseUnitView> dtEndBind = new Binder<>();
 
     protected void fireOnDateChangedForPeriod(int id) {
+        try {
+            dtFix = model.getFixDate();
+        } catch (Exception ignore) {
+        }
+
         // Проверка валидаторов.
         Binder<BaseUnitView> b1 = id == 0 ? dtStartBind : dtEndBind;
         Binder<BaseUnitView> b2 = id == 0 ? dtEndBind : dtStartBind;
@@ -248,6 +277,11 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
     }
 
     protected void fireOnDateChangedForDate() {
+        try {
+            dtFix = model.getFixDate();
+        } catch (Exception ignore) {
+        }
+
         // Проверка валидаторов.
         Binder<BaseUnitView> b1 = dtStartBind;
         boolean iserr = false;
@@ -320,7 +354,7 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
     }
 
     protected void updateTitleUpdateInfo() {
-        titleUpdateInfo.setValue("(на " + fmtDT86(LocalDateTime.now()) + ")");
+        titleUpdateInfo.setValue("(обновлено: " + fmtDT86(LocalDateTime.now()) + ")");
     }
 
     protected void updateData() {
@@ -356,43 +390,43 @@ public abstract class BaseUnitView extends Panel implements AbstractUnitView {
     }
 
     protected boolean checkForStartAndFix(LocalDate dtstart, LocalDate dtend) {
-        if (dtend != null && dtend .isBefore(dtstart)) {
-            showError("Дата начала периода позже даты его конца!");
-            return false;
+        try {
+            dtFix = model.getFixDate();
+        } catch (Exception ignore) {
         }
 
         if (dtstart.isBefore(user.getDtStart())) {
-            showError("Дата " + (dtend != null ? "актуальности " : "начала периода ")
-                    + "раньше даты начала учёта клиента!<br>"
-                    + "Даты отчёта не могут быть раньше даты начала учёта клиента!");
+            showError("Дата " + (dtend != null ? "(" : "начала периода (") + fmtDate8(dtstart) + ") "
+                    + "меньше даты начала учёта по клиенту (" + fmtDate8(user.getDtStart()) + ")!<br>"
+                    + "Даты отчёта не могут быть меньше даты начала учёта по клиенту!");
             return false;
         }
-        if (dtend != null && dtend.isBefore(user.getDtStart())) {
-            showError("Дата конца периода раньше даты начала учёта клиента!<br>"
-                    + "Даты отчёта не могут быть раньше даты начала учёта клиента!");
+        if (dtstart.isAfter(dtFix)) {
+            showError("Дата " + (dtend != null ? "(" : "начала периода (") + fmtDate8(dtstart) + ") "
+                    + "больше даты актуальности данных (" + fmtDate8(dtFix) + ")!<br>"
+                    + "Даты отчёта не могут быть больше даты актуальности данных!");
             return false;
         }
-        if (dtend != null && !dtstart.plusMonths(3).isAfter(dtend)) {
-            showError("Период больше трёх месяцев!");
-            return false;
-        }
-
-        try {
-            LocalDate dtfix = model.getFixDate();
-            if (dtstart.isAfter(dtfix)) {
-                showError("Дата " + (dtend != null ? "актуальности " : "начала периода ")
-                        + "позже даты фиксации!<br>Даты отчёта не могут быть позже даты фиксации!");
+        if (dtend != null) {
+            if (dtend.isBefore(dtstart)) {
+                showError("Дата начала периода (" + fmtDate8(dtstart) + ") больше даты конца периода (" + fmtDate8(dtend) + ")!");
                 return false;
             }
-            if (dtend != null && dtend.isAfter(dtfix)) {
-                showError("Дата конца периода позже даты фиксации!<br>"
-                        + "Даты отчёта не могут быть позже даты фиксации!");
+            if (dtend.isBefore(user.getDtStart())) {
+                showError("Дата конца периода (" + fmtDate8(dtend) + ") меньше даты начала учёта по клиенту (" + fmtDate8(user.getDtStart()) + ")!<br>"
+                        + "Даты отчёта не могут быть меньше даты начала учёта по клиенту!");
                 return false;
             }
-        } catch (Exception ex) {
-            logger.error("Error: ", ex);
-            showError("Ошибка запроса даты фиксации в БД!");
-            return false;
+            if (dtend.isAfter(dtFix)) {
+                showError("Дата конца периода (" + fmtDate8(dtend)
+                        + ") больше даты актуальности данных (" + fmtDate8(dtFix) + ")!<br>"
+                        + "Даты отчёта не могут быть больше даты актуальности данных!");
+                return false;
+            }
+            if (!dtstart.plusMonths(3).isAfter(dtend)) {
+                showError("Период (" + fmtDate8(dtstart) + " - " + fmtDate8(dtend) + ") больше трёх месяцев!");
+                return false;
+            }
         }
         return true;
     }

@@ -39,32 +39,6 @@ public class MainView extends HorizontalLayout {
 
         // Для того, чтобы меню скрывалось (если всплывающее) при клике на контенте.
         content.addLayoutClickListener((event) -> menu.hideMenu());
-
-//        final Button logoutButton = new Button("Отлогиниться", (e) -> fireOnLogout());
-//        addComponent(logoutButton);
-//
-//        final Button exitButton = new Button("Выход", (e) -> {
-//            for (UI ui : VaadinSession.getCurrent().getUIs()) {
-//                ui.access(() -> {
-//                    //view.getPage().setLocation("/Logout");
-//                    //view.close();
-//                    ui.setContent(new Label("LOGOUT!"));
-//                    if (ui != getUI()) ui.push();
-//                });
-//            }
-//            //getSession().close();
-//        });
-//        addComponent(exitButton);
-//
-//        final Button accButton = new Button("Счета");
-//        accButton.addListener((e) -> {
-//            Window w = new Window("Счета клиентов");
-//            w.setClosable(true);
-//            w.setResizable(true);
-//            getUI().addWindow(w);
-//            w.center();
-//        });
-//        addComponent(accButton);
     }
 
     @Override

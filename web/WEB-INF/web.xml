@@ -4,6 +4,11 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
+    <context-param>
+        <param-name>productionMode</param-name>
+        <param-value>false</param-value>
+    </context-param>
+
     <!--
     <display-name>Web Cabinet</display-name>
 
@@ -12,10 +17,9 @@
         <servlet-class>app.AppServlet</servlet-class>
         <init-param>
             <param-name>UI</param-name>
-            <param-value>app.viewew.AppUI</param-value>
+            <param-value>app.AppUI</param-value>
         </init-param>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>WebCabinet</servlet-name>
         <url-pattern>/*</url-pattern>

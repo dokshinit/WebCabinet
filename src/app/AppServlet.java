@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 @WebServlet(value = "/*", asyncSupported = true)
-@VaadinServletConfiguration(productionMode = false, ui = AppUI.class)
+@VaadinServletConfiguration(productionMode = true, ui = AppUI.class)
 @SuppressWarnings("serial")
 public class AppServlet extends VaadinServlet implements SessionInitListener, SessionDestroyListener {
 
@@ -49,12 +49,14 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         return getApp().answersPath;
     }
 
+    public static boolean isDeveloping = false;
+
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         catalinaHome = System.getProperty("catalina.base");
         appHome = servletConfig.getServletContext().getRealPath("/");
 
-        logger.toFile(catalinaHome + "/logs");
+        logger.toFile(appHome + "/logs", logger.getFilePattern(), logger.getFileCheck());
 
         super.init(servletConfig);
 
@@ -91,12 +93,14 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
             user = cfg.getKey("db.user", "WEB");
             password = cfg.getKey("db.password", "xxxxxxxx");
             answersPath = cfg.getKey("requestprocessor.answerspath", appHome + File.separator + "answers");
+            isDeveloping = cfg.getIntKey("developing", 0) != 0;
 
         } catch (Exception ex) {
             base = "127.0.0.1:WebCenter";
             user = "WEB";
             password = "xxxxxxxx";
             answersPath = appHome + File.separator + "answers";
+            isDeveloping = false;
 
             logger.infof("Ошибка загрузки конфигурации: %s! Приняты параметры по умолчанию!", ex.getMessage());
         }

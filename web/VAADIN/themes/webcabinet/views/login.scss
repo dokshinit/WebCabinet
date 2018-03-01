@@ -106,9 +106,17 @@
         // Заголовок.
         .title {
           font-weight: bold;
-          line-height: $v-unit-size;
+          //line-height: $v-unit-size;
           width: 100%;
           text-align: center;
+
+          .test {
+            background: #E04040;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+          }
         }
 
         .v-icon {

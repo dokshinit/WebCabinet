@@ -104,8 +104,10 @@ public class User {
         return clientCredit;
     }
 
+    public static final LocalDate dt2006 = LocalDate.of(2008, 5, 1);
+
     public synchronized LocalDate getDtStart() {
-        return dtStart;
+        return dtStart.isBefore(dt2006) ? dt2006 : dtStart;
     }
 
     public synchronized String getRole() {

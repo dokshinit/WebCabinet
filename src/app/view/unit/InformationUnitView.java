@@ -20,7 +20,7 @@ import static app.view.unit.Helper.*;
 public class InformationUnitView extends BaseUnitView {
 
     private VerticalLayout infoL, contractL, accL;
-    private Label fixDateLabel;
+    private Label fixDateLabel, accTitleLabel;
     private Grid<Contract> contractGrid;
     private Grid<Acc> accGrid;
 
@@ -112,13 +112,13 @@ public class InformationUnitView extends BaseUnitView {
         accGrid.setWidth("660px");
         setRowHeight(accGrid);
 
-        fixDateLabel = style(new Label("<span class='star'>*</span> Дата фиксации данных: ---!", ContentMode.HTML), "note");
+        accTitleLabel = style(new Label("Лицевые счета (за период с --- по ----)", ContentMode.HTML), "hhh");
+        fixDateLabel = style(new Label("<span class='star'>*</span> Дата актуальности данных: ---!", ContentMode.HTML), "note");
 
-        accL.addComponents(style(new Label("Лицевые счета"), "hhh"), accGrid,
-                style(new Label("<span class='star'>*</span> Дата начала учёта клиента: <span class='fixdate'>" +
-                        fmtDate8(user.getDtStart()) + "</span>!", ContentMode.HTML), "note"),
+        accL.addComponents(accTitleLabel, accGrid,
                 fixDateLabel,
-                style(new Label("<span class='star'>*</span> Цифры на момент последней консолидации данных!", ContentMode.HTML), "note"),
+                style(new Label("<span class='star'>*</span> Дата актуальности увеличивается только после поступления и " +
+                        "обработки всех данных за следующие сутки!", ContentMode.HTML), "note", "wrapped-label"),
                 style(new Label("<span class='star'>*</span> Задержка обработки данных, при отсутствии форс-мажорных " +
                         "обстоятельств, может составлять до одного <u>рабочего</u> дня!", ContentMode.HTML), "note", "wrapped-label"));
 
@@ -136,6 +136,17 @@ public class InformationUnitView extends BaseUnitView {
         super.updateData();
 
         try {
+            dtFix = model.getFixDate();
+            accTitleLabel.setValue("Лицевые счета <span class='accrange'>(за период с <b>" + fmtDate8(dtFix.withDayOfMonth(1)) +
+                    "</b> по <b>" + fmtDate8(dtFix) + "</b><span class='star'>*</span>)</span>");
+            fixDateLabel.setValue("<span class='star'>*</span> Дата актуальности данных: <span class='fixdate'>" + fmtDate8(dtFix) + "</span>!");
+        } catch (Exception ex) {
+            logger.error("Error: ", ex);
+            fixDateLabel.setComponentError(new UserError("Ошибка запроса БД!"));
+        }
+
+        try {
+            // Договоры на тек.дату.
             ArrayList<Contract> list = model.loadClientContracts(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), LocalDate.now());
             contractGrid.setDataProvider(DataProvider.ofCollection(list));
             contractGrid.sort("DTSTARTFACT", SortDirection.DESCENDING);
@@ -147,7 +158,8 @@ public class InformationUnitView extends BaseUnitView {
         }
 
         try {
-            ArrayList<Acc> list = model.loadClientAccs(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), LocalDate.now());
+            // Счета выводятся на дату актуальности!
+            ArrayList<Acc> list = model.loadClientAccs(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), dtFix);
             accGrid.setDataProvider(DataProvider.ofCollection(list));
             setHeightByCollection(accGrid, list);
             accGrid.sort("IDD", SortDirection.ASCENDING);
@@ -155,14 +167,6 @@ public class InformationUnitView extends BaseUnitView {
         } catch (Exception ex) {
             logger.error("Error: ", ex);
             accL.setComponentError(new UserError("Ошибка запроса БД!"));
-        }
-
-        try {
-            dtFix = model.getFixDate();
-            fixDateLabel.setValue("<span class='star'>*</span> Дата фиксации данных: <span class='fixdate'>" + fmtDate8(dtFix) + "</span>!");
-        } catch (Exception ex) {
-            logger.error("Error: ", ex);
-            fixDateLabel.setComponentError(new UserError("Ошибка запроса БД!"));
         }
     }
 }

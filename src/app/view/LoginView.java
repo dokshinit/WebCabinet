@@ -14,6 +14,8 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static app.view.unit.Helper.style;
+
 /**
  * Компонент, реализующий процесс авторизации пользователя (готовый контент UI).
  */
@@ -45,27 +47,26 @@ public class LoginView extends Panel {
         return (AppUI) super.getUI();
     }
 
-    String login = "", password = "";
+    String login, password;
     Binder<String> loginBind = new Binder<>();
     Binder<String> passwordBind = new Binder<>();
 
     private Component buildLoginComponent() {
 
+        login = AppServlet.isDeveloping ? "12345" : "";
+        password = AppServlet.isDeveloping ? "1234" : "";
+
         // Раскладка-псевдоокно.
-        final VerticalLayout layout = new VerticalLayout();
+        final VerticalLayout layout = style(new VerticalLayout(), "panel");
         layout.setSizeUndefined();
         layout.setMargin(false);
         layout.setSpacing(false);
-        layout.addStyleName("panel");
 
         // Заголовок.
-        Label logo1 = new Label("<b>ООО \"Транзит-Плюс\"</b>", ContentMode.HTML);
-        logo1.addStyleName("firm");
-        Label logo2 = new Label("<b>С</b>истема <b>Т</b>опливных <b>К</b>арт", ContentMode.HTML);
-        logo2.addStyleName("system");
+        Label logo1 = style(new Label("<b>ООО \"Транзит-Плюс\"</b>", ContentMode.HTML), "firm");
+        Label logo2 = style(new Label("<b>С</b>истема <b>Т</b>опливных <b>К</b>арт", ContentMode.HTML), "system");
 
-        VerticalLayout labels = new VerticalLayout();
-        labels.addStyleName("logo");
+        VerticalLayout labels = style(new VerticalLayout(), "logo");
         labels.setHeightUndefined();
         labels.setMargin(false);
         labels.setSpacing(false);
@@ -73,24 +74,22 @@ public class LoginView extends Panel {
         labels.setComponentAlignment(logo1, Alignment.MIDDLE_CENTER);
         labels.setComponentAlignment(logo2, Alignment.MIDDLE_CENTER);
 
-        Label title = new Label("Авторизация доступа", ContentMode.HTML);
-        title.addStyleName("title");
+        Label title = style(new Label("Авторизация доступа" +
+                "<br><span class='test'>Тестовый режим!</span>", ContentMode.HTML), "title");
 
         // Поля.
-        loginField = new TextField("ИНН");
+        loginField = style(new TextField("ИНН"), "login");
         loginField.setWidth("225px");
         loginField.addStyleNames(ValoTheme.TEXTFIELD_INLINE_ICON);
-        loginField.addStyleName("login");
         loginField.setIcon(VaadinIcons.USER);
         loginField.setPlaceholder("Логин");
         loginBind.forField(loginField)
                 .asRequired("Обязательное поле")
                 .withValidator((v) -> v.length() > 3, "Не может быть короче трех символов!")
                 .bind((v) -> login, (c, v) -> login = v);
-        passwordField = new PasswordField("Пароль");
+        passwordField = style(new PasswordField("Пароль"), "password");
         passwordField.setWidth("225px");
         passwordField.addStyleNames(ValoTheme.TEXTFIELD_INLINE_ICON);
-        passwordField.addStyleName("password");
         passwordField.setIcon(VaadinIcons.LOCK);
         passwordField.setPlaceholder("Пароль");
         passwordBind.forField(passwordField)
@@ -98,19 +97,16 @@ public class LoginView extends Panel {
                 .withValidator((v) -> v.length() > 3, "Не может быть короче трех символов!")
                 .bind((v) -> password, (c, v) -> password = v);
 
-        signinButton = new Button("Войти в кабинет");
-        signinButton.addStyleName("signin");
+        signinButton = style(new Button("Войти в кабинет"), "signin");
         signinButton.setClickShortcut(KeyCode.ENTER);
         signinButton.setWidth("225px");
         signinButton.focus();
 
         // Примечание.
-        PopupView pv = new PopupView(new NotePopupContent());
+        PopupView pv = style(new PopupView(new NotePopupContent()), "note-popup"); // Этот стиль применяется к кнопке!
         pv.setHideOnMouseOut(true);
-        pv.addStyleName("note-popup"); // Этот стиль применяется к кнопке!
 
-        VerticalLayout fields = new VerticalLayout();
-        fields.addStyleName("form");
+        VerticalLayout fields = style(new VerticalLayout(), "form");
         fields.addComponents(title, loginField, passwordField, signinButton, pv);
         fields.setComponentAlignment(title, Alignment.MIDDLE_CENTER);
         fields.setComponentAlignment(signinButton, Alignment.BOTTOM_LEFT);
@@ -133,7 +129,6 @@ public class LoginView extends Panel {
         } catch (ValidationException ex) {
             return;
         }
-        AppServlet.logger.infof("Login: '%s' Psw: '%s'", login, password);
 
         // Авторизация.
         AppModel m = AppUI.model();

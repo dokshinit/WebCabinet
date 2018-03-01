@@ -56,7 +56,8 @@ public class MainViewMenu extends CustomComponent {
     }
 
     private Component buildTitle() {
-        Label logo = new Label("Личный кабинет <span style='font-weight: bold'>СТК</span>", ContentMode.HTML);
+        Label logo = new Label("Личный кабинет <span style='font-weight: bold'>СТК</span>" +
+                "<div class='test'><span>Тестовый режим!</span></div>", ContentMode.HTML);
         logo.setSizeUndefined();
         logo.addStyleName("main-menu-logo");
         HorizontalLayout logoWrapper = new HorizontalLayout(logo);

@@ -25,6 +25,21 @@
 
   .valo-menu-title {
     line-height: 1.2;
+
+    .test {
+      background: #E04040;
+      color: white;
+      padding: 1px 3px;
+      border-radius: 3px;
+      font-size: 10px;
+      display: block;
+      text-align: center;
+
+      span {
+        text-align: center;
+        //vertical-align: middle;
+      }
+    }
   }
 
   .v-menubar-user-menu:after {
@@ -52,6 +67,12 @@
     .valo-menu-title {
       @include valo-gradient($color: $valo-menu-background-color);
       border-bottom-color: first-color(valo-border($color: $valo-menu-background-color));
+
+      .test {
+        display: inline-block;
+        margin-left: 5px;
+        vertical-align: middle;
+      }
     }
     .valo-menu .v-menubar-user-menu {
       color: inherit;

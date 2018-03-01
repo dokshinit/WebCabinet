@@ -18,6 +18,8 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Locale;
 
+import static app.view.unit.Helper.style;
+
 /**
  * @author lex
  */
@@ -51,12 +53,9 @@ public class AppUI extends UI {
         setLocale(Locale.US);
         getReconnectDialogConfiguration().setDialogText("Соединение разорвано, переподключение!");
         Responsive.makeResponsive(this);
-        //addStyleName(ValoTheme.UI_WITH_MENU);
 
         updateContent();
 
-        // Some views need to be aware of browser resize events so a
-        // BrowserResizeEvent gets fired to the event bus on every occasion.
         Page.getCurrent().addBrowserWindowResizeListener((e) -> fireOnBrowserResized(e));
     }
 
@@ -76,8 +75,7 @@ public class AppUI extends UI {
             logAction(AppModel.LogActionPage.LOGIN, AppModel.LogActionType.OPENPAGE);
             mainView = null;
             removeStyleName(ValoTheme.UI_WITH_MENU);
-            setContent(loginView = new LoginView());
-            addStyleName("login-ui");
+            setContent(loginView = style(new LoginView(), "login-ui"));
         }
     }
 
