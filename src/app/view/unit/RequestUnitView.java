@@ -13,7 +13,28 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class RequestUnitView extends BaseUnitView {
+public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
+
+    class PM extends BaseUnitView.BaseParamsModel<PM> {
+        public Request.Type reqType;
+        public Request.Mode reqMode;
+
+        PM() {
+            super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.NOW,
+                    BaseParamsModel.DatesModeEnum.PERIOD, null, null);
+            reqType = null;
+            reqMode = null;
+        }
+
+        @Override
+        public void to(PM dst) {
+            if (dst != null) {
+                super.to(dst);
+                dst.reqType = reqType;
+                dst.reqMode = reqMode;
+            }
+        }
+    }
 
     private ComboBox<Request.Type> reqTypeCombo;
     private ComboBox<Request.Mode> reqModeCombo;
@@ -21,8 +42,6 @@ public class RequestUnitView extends BaseUnitView {
     private SingleSelect<Request> singleSelect;
     private RequestDataService dataService;
 
-    private Request.Type reqType;
-    private Request.Mode reqMode;
 
     public RequestUnitView() {
         super("request", "Заявки");
@@ -30,26 +49,26 @@ public class RequestUnitView extends BaseUnitView {
 
     @Override
     protected void initVars() {
-        super.initVars();
+        hasParams = true;
+        hasUpdate = true;
+        hasReport = false;
+        toolbarAlwaysShowed = true;
 
-        reqType = null;
-        reqMode = null;
-        dtStart = LocalDate.now().minusDays(30);
-        dtEnd = LocalDate.now();
+        curPM = new PM();
+        toolbarPM = new PM();
+
+        curPM.reqType = null;
+        curPM.reqMode = null;
+        curPM.dtEnd = LocalDate.now();
+        curPM.dtStart = curPM.dtEnd.minusMonths(1);
     }
 
     @Override
     protected void buildHeadToolbar() {
         buildHeadToolbarLayout();
         buildTypeAndModeCombos();
-        buildHeadToolbarDtwsForPeriod();
+        buildHeadToolbarDates();
         buildHeadToolbarButtons();
-    }
-
-    @Override
-    protected void buildHeadToolbarButtons() {
-        buildHeadTollbarButtonsLayout();
-        buildHeadToolbarFilterButton();
     }
 
     private void buildTypeAndModeCombos() {
@@ -118,31 +137,22 @@ public class RequestUnitView extends BaseUnitView {
     }
 
     private void fireOnTypeChanged(Request.Type type) {
-        reqType = type;
+        toolbarPM.reqType = type;
         toolbarParamsChanged = true;
-        updateButtonsState(!isValid());
+        updateButtonsState(!isValidToolbar());
     }
 
     private void fireOnModeChanged(Request.Mode mode) {
-        reqMode = mode;
+        toolbarPM.reqMode = mode;
         toolbarParamsChanged = true;
-        updateButtonsState(!isValid());
+        updateButtonsState(!isValidToolbar());
     }
 
     @Override
-    protected void fireOnDateChanged(int id) {
-        fireOnDateChangedForPeriod(id);
-    }
-
-    @Override
-    protected void validate() {
-        dtStartBind.validate();
-        dtEndBind.validate();
-    }
-
-    @Override
-    protected boolean isValid() {
-        return dtStartBind.isValid() && dtEndBind.isValid();
+    protected void initToolbar() {
+        super.initToolbar();
+        reqTypeCombo.setSelectedItem(curPM.reqType);
+        reqModeCombo.setSelectedItem(curPM.reqMode);
     }
 
     @Override
@@ -152,7 +162,7 @@ public class RequestUnitView extends BaseUnitView {
 
     @Override
     protected void updateData() {
-        updateTitleUpdateInfo();
+        updateUpdateLabel();
         dataService.refresh();
     }
 
@@ -168,10 +178,10 @@ public class RequestUnitView extends BaseUnitView {
 
         @Override
         public void setup() {
-            this.dtstart = RequestUnitView.this.dtStart;
-            this.dtend = RequestUnitView.this.dtEnd;
-            this.type = RequestUnitView.this.reqType;
-            this.mode = RequestUnitView.this.reqMode;
+            this.dtstart = curPM.dtStart;
+            this.dtend = curPM.dtEnd;
+            this.type = curPM.reqType;
+            this.mode = curPM.reqMode;
         }
 
         @Override

@@ -10,7 +10,6 @@ import com.vaadin.ui.components.grid.FooterCell;
 import com.vaadin.ui.components.grid.FooterRow;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -20,13 +19,13 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class TurnoverUnitView extends BaseUnitView {
+public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel> {
 
     private Grid<Saldo> startGrid;
     private Grid<Sale> saleGrid;
     private Grid<Pay> payGrid;
     private Grid<Saldo> endGrid;
-    private Label fixDateLabel, turnoverTitleLabel;
+    private Label fixDateLabel;
 
     public TurnoverUnitView() {
         super("turnover", "Обороты по клиенту");
@@ -34,22 +33,29 @@ public class TurnoverUnitView extends BaseUnitView {
 
     @Override
     protected void initVars() {
-        super.initVars();
+        hasParams = true;
+        hasUpdate = true;
+        hasReport = true;
+
+        curPM = new BaseParamsModel(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
+                BaseParamsModel.DatesModeEnum.PERIOD, null, null);
+        toolbarPM = new BaseParamsModel(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
+                BaseParamsModel.DatesModeEnum.PERIOD, null, null);
 
         try {
             dtFix = model.getFixDate();
-            dtStart = dtFix.withDayOfMonth(1);
-            dtEnd = dtFix;
+            curPM.dtStart = dtFix.withDayOfMonth(1);
+            curPM.dtEnd = dtFix;
         } catch (Exception ex) {
-            dtStart = LocalDate.now().withDayOfMonth(1);
-            dtEnd = dtStart.plusMonths(1).minusDays(1);
+            curPM.dtStart = LocalDate.now().withDayOfMonth(1);
+            curPM.dtEnd = curPM.dtStart.plusMonths(1).minusDays(1);
         }
     }
 
     @Override
     protected void buildHeadToolbar() {
         buildHeadToolbarLayout();
-        buildHeadToolbarDtwsForPeriod();
+        buildHeadToolbarDates();
         buildHeadToolbarButtons();
     }
 
@@ -62,8 +68,6 @@ public class TurnoverUnitView extends BaseUnitView {
     }
 
     private void buildStart() {
-        turnoverTitleLabel = style(new Label("Обороты по клиенту (за период с --- по ----)", ContentMode.HTML), "hhh2");
-
         startGrid = style(new Grid<>(), "start-table");
         column(startGrid, Saldo::getAccType, v -> v.title, "ITYPE", "Тип", ST_AL_LEFT, 180, null);
         column(startGrid, Saldo::getOil, v -> v != null ? v.abbreviation : "", "IDDOIL", "Н/П", ST_AL_CENTER, 100, null);
@@ -73,7 +77,7 @@ public class TurnoverUnitView extends BaseUnitView {
         startGrid.setWidth("400px");
         setRowHeight(startGrid);
 
-        bodyL.addComponents(turnoverTitleLabel, style(new Label("Сальдо начальное"), "hhh"), startGrid);
+        bodyL.addComponents(style(new Label("Сальдо начальное"), "hhh"), startGrid);
     }
 
     private void buildSale() {
@@ -142,18 +146,13 @@ public class TurnoverUnitView extends BaseUnitView {
     }
 
     @Override
-    protected void fireOnDateChanged(int id) {
-        fireOnDateChangedForPeriod(id);
-    }
-
-    @Override
-    protected void fireOnCreateReport() {
-        if (!checkForStartAndFix(dtStart, dtEnd)) return;
+    protected void fireOnReportButtonClick() {
+        if (!checkForStartAndFix(curPM)) return;
 
         HashMap<String, String> params = new HashMap<>();
         String s1, s2;
-        params.put("dtStart", s1 = fmtDate8(dtStart));
-        params.put("dtEnd", s2 = fmtDate8(dtEnd));
+        params.put("dtStart", s1 = fmtDate8(curPM.dtStart));
+        params.put("dtEnd", s2 = fmtDate8(curPM.dtEnd));
         //
         Request r = Request.newReport(Request.ReportType.TURNOVER, "за период с " + s1 + " по " + s2, params);
         RequestDialog dlg = new RequestDialog(r);
@@ -177,8 +176,8 @@ public class TurnoverUnitView extends BaseUnitView {
 
         try {
             dtFix = model.getFixDate();
-            turnoverTitleLabel.setValue("Обороты по клиенту <span class='accrange'>(за период с <b>" + fmtDate8(dtStart) +
-                    "</b> по <b>" + fmtDate8(dtEnd) + "</b>)</span><span class='crtime'>" + fmtDT86(LocalDateTime.now()) + "</span>");
+            paramsLabel.setValue("<span class='datesrange'>за период с <b>" + fmtDate8(curPM.dtStart) +
+                    "</b> по <b>" + fmtDate8(curPM.dtEnd) + "</b></span>");
             fixDateLabel.setValue("<span class='star'>*</span> Дата актуальности данных: <span class='fixdate'>" + fmtDate8(dtFix) + "</span>!");
         } catch (Exception ex) {
             logger.error("Error: ", ex);
@@ -186,7 +185,7 @@ public class TurnoverUnitView extends BaseUnitView {
         }
 
         try {
-            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), dtStart);
+            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtStart);
             startGrid.setDataProvider(DataProvider.ofCollection(list));
             setHeightByCollection(startGrid, list);
         } catch (Exception ex) {
@@ -196,7 +195,7 @@ public class TurnoverUnitView extends BaseUnitView {
         }
 
         try {
-            ArrayList<Sale> list = model.loadClientSales(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), dtStart, dtEnd);
+            ArrayList<Sale> list = model.loadClientSales(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtStart, curPM.dtEnd);
             Long vol = 0L, sum = 0L;
             for (Sale s : list) {
                 vol += s.getVolume();
@@ -214,7 +213,7 @@ public class TurnoverUnitView extends BaseUnitView {
         }
 
         try {
-            ArrayList<Pay> list = model.loadClientPays(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), dtStart, dtEnd);
+            ArrayList<Pay> list = model.loadClientPays(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtStart, curPM.dtEnd);
             Long vol = 0L, sum = 0L;
             for (Pay s : list) {
                 vol += s.getVolume();
@@ -232,7 +231,7 @@ public class TurnoverUnitView extends BaseUnitView {
         }
 
         try {
-            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), dtEnd);
+            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtEnd);
             endGrid.setDataProvider(DataProvider.ofCollection(list));
             setHeightByCollection(endGrid, list);
         } catch (Exception ex) {

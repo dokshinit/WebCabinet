@@ -7,9 +7,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.server.Page;
 import com.vaadin.server.Responsive;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 
-import static app.AppServlet.logger;
 import static app.view.unit.Helper.*;
 
 @SuppressWarnings("serial")

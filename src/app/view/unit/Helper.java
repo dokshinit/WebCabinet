@@ -1,6 +1,5 @@
 package app.view.unit;
 
-import app.model.Card;
 import app.sizer.SizeReporter;
 import com.vaadin.data.ValueProvider;
 import com.vaadin.server.Sizeable;

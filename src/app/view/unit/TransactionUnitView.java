@@ -14,14 +14,38 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class TransactionUnitView extends BaseUnitView {
+public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
+
+    class PM extends BaseUnitView.BaseParamsModel<PM> {
+        public Azs azs;
+
+        PM() {
+            super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
+                    BaseParamsModel.DatesModeEnum.PERIOD, null, null);
+            azs = null;
+        }
+
+        @Override
+        public void to(PM dst) {
+            if (dst != null) {
+                super.to(dst);
+                dst.azs = azs;
+            }
+        }
+
+        Integer getAzsIdd() {
+            return azs == null ? null : azs.getIdd();
+        }
+
+        String getAzsIddAsString() {
+            return getAzsIdd() == null ? "" : "" + getAzsIdd();
+        }
+    }
 
     private Grid<Transaction> grid;
     private TransactionDataService dataService;
     private SingleSelect<Transaction> singleSelect;
     private ComboBox<Azs> azsCombo;
-
-    private Integer iddAzs;
 
     private ArrayList<Azs> azsList = null;
 
@@ -31,18 +55,29 @@ public class TransactionUnitView extends BaseUnitView {
 
     @Override
     protected void initVars() {
-        super.initVars();
+        hasParams = true;
+        hasUpdate = true;
+        hasReport = true;
 
-        iddAzs = null;
-        dtStart = LocalDate.now().withDayOfMonth(1);
-        dtEnd = dtStart.plusMonths(1).minusDays(1);
+        curPM = new PM();
+        toolbarPM = new PM();
+
+        curPM.azs = null;
+        try {
+            dtFix = model.getFixDate();
+            curPM.dtStart = dtFix.withDayOfMonth(1);
+            curPM.dtEnd = dtFix;
+        } catch (Exception ex) {
+            curPM.dtStart = LocalDate.now().withDayOfMonth(1);
+            curPM.dtEnd = curPM.dtStart.plusMonths(1).minusDays(1);
+        }
     }
 
     @Override
     protected void buildHeadToolbar() {
         buildHeadToolbarLayout();
         buildAzsCombo();
-        buildHeadToolbarDtwsForPeriod();
+        buildHeadToolbarDates();
         buildHeadToolbarButtons();
     }
 
@@ -111,41 +146,31 @@ public class TransactionUnitView extends BaseUnitView {
     }
 
     private void fireOnAzsChanged(Azs azs) {
-        iddAzs = azs == null ? null : azs.getIdd();
+        toolbarPM.azs = azs;
         toolbarParamsChanged = true;
-        updateButtonsState(!isValid());
+        updateButtonsState(!isValidToolbar());
     }
 
     @Override
-    protected void fireOnDateChanged(int id) {
-        fireOnDateChangedForPeriod(id);
-    }
-
-    @Override
-    protected void validate() {
-        dtStartBind.validate();
-        dtEndBind.validate();
-    }
-
-    @Override
-    protected void fireOnCreateReport() {
-        if (!checkForStartAndFix(dtStart, dtEnd)) return;
+    protected void fireOnReportButtonClick() {
+        if (!checkForStartAndFix(curPM)) return;
 
         HashMap<String, String> params = new HashMap<>();
         String s1, s2;
-        params.put("dtStart", s1 = fmtDate8(dtStart));
-        params.put("dtEnd", s2 = fmtDate8(dtEnd));
-        params.put("iddAzs", iddAzs == null ? "" : "" + iddAzs);
+        params.put("dtStart", s1 = fmtDate8(curPM.dtStart));
+        params.put("dtEnd", s2 = fmtDate8(curPM.dtEnd));
+        params.put("iddAzs", curPM.getAzsIddAsString());
         //
         Request r = Request.newReport(Request.ReportType.TRANSACTION,
-                "за период с " + s1 + " по " + s2 + (iddAzs == null ? "" : " на АЗС №" + iddAzs), params);
+                "за период с " + s1 + " по " + s2 + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd()), params);
         RequestDialog dlg = new RequestDialog(r);
         getUI().addWindow(dlg);
     }
 
     @Override
-    protected boolean isValid() {
-        return dtStartBind.isValid() && dtEndBind.isValid();
+    protected void initToolbar() {
+        super.initToolbar();
+        azsCombo.setSelectedItem(curPM.azs);
     }
 
     @Override
@@ -155,7 +180,13 @@ public class TransactionUnitView extends BaseUnitView {
 
     @Override
     protected void updateData() {
-        updateTitleUpdateInfo();
+        super.updateData();
+
+        int iddazs = curPM.getAzsIdd() == null ? 0 : curPM.getAzsIdd();
+        paramsLabel.setValue("<span class='datesrange'>за период с <b>" + fmtDate8(curPM.dtStart) +
+                "</b> по <b>" + fmtDate8(curPM.dtEnd) + "</b></span>, " +
+                "<span>" + (iddazs == 0 ? "по <b>всем АЗС</b>" : "по <b>АЗС №" + iddazs + "</b>") + "</span>");
+
         dataService.refresh();
     }
 
@@ -174,9 +205,9 @@ public class TransactionUnitView extends BaseUnitView {
             this.iddfirm = user.getFirm().id;
             this.iddclient = user.getIddClient();
             this.iddsub = user.getIddClentSub();
-            this.dtstart = TransactionUnitView.this.dtStart;
-            this.dtend = TransactionUnitView.this.dtEnd;
-            this.iddazs = TransactionUnitView.this.iddAzs;
+            this.dtstart = curPM.dtStart;
+            this.dtend = curPM.dtEnd;
+            this.iddazs = curPM.getAzsIdd();
         }
 
         @Override

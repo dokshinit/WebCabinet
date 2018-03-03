@@ -19,7 +19,25 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class CardUnitView extends BaseUnitView {
+public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
+
+    class PM extends BaseUnitView.BaseParamsModel<PM> {
+        public Card.WorkState workState;
+
+        PM() {
+            super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
+                    BaseParamsModel.DatesModeEnum.DATE, null, null);;
+            workState = null;
+        }
+
+        @Override
+        public void to(PM dst) {
+            if (dst != null) {
+                super.to(dst);
+                dst.workState = workState;
+            }
+        }
+    }
 
     private Grid<Card> grid;
     private SingleSelect<Card> singleSelect;
@@ -27,25 +45,33 @@ public class CardUnitView extends BaseUnitView {
 
     private ComboBox<Card.WorkState> workCombo;
 
-    private Card.WorkState workState;
-
     public CardUnitView() {
         super("card", "Топливные карты");
     }
 
     @Override
     protected void initVars() {
-        super.initVars();
+        hasParams = true;
+        hasUpdate = true;
+        hasReport = true;
 
-        workState = Card.WorkState.WORK;
-        dtStart = LocalDate.now();
+        curPM = new PM();
+        toolbarPM = new PM();
+
+        curPM.workState = Card.WorkState.WORK;
+        try {
+            dtFix = model.getFixDate();
+            curPM.dtStart = dtFix.withDayOfMonth(1);
+        } catch (Exception ex) {
+            curPM.dtStart = LocalDate.now().withDayOfMonth(1);
+        }
     }
 
     @Override
     protected void buildHeadToolbar() {
         buildHeadToolbarLayout();
         buildWorkStateCombo();
-        buildHeadToolbarDtwForDate();
+        buildHeadToolbarDates();
         buildHeadToolbarButtons();
     }
 
@@ -56,7 +82,7 @@ public class CardUnitView extends BaseUnitView {
         workCombo.setEmptySelectionCaption("< Все >");
         workCombo.setItemCaptionGenerator(Card.WorkState::getTitleForMany);
         workCombo.setDataProvider(DataProvider.ofItems(Card.WorkState.values()));
-        workCombo.setSelectedItem(workState);
+        workCombo.setSelectedItem(curPM.workState);
         workCombo.addValueChangeListener((e) -> fireOnWorkStateChanged(e.getValue()));
         workCombo.setWidth("140px");
 
@@ -111,40 +137,30 @@ public class CardUnitView extends BaseUnitView {
     }
 
     private void fireOnWorkStateChanged(Card.WorkState ws) {
-        workState = ws;
+        toolbarPM.workState = ws;
         toolbarParamsChanged = true;
-        updateButtonsState(!isValid());
+        updateButtonsState(!isValidToolbar());
     }
 
     @Override
-    public void fireOnDateChanged(int id) {
-        fireOnDateChangedForDate();
-    }
-
-    @Override
-    protected void fireOnCreateReport() {
-        if (!checkForStartAndFix(dtStart, null)) return;
+    protected void fireOnReportButtonClick() {
+        if (!checkForStartAndFix(curPM)) return;
 
         HashMap<String, String> params = new HashMap<>();
         String s1;
-        params.put("dtw", s1 = fmtDate8(dtStart));
-        params.put("idWorkState", workState == null ? "" : "" + workState.id);
+        params.put("dtw", s1 = fmtDate8(curPM.dtStart));
+        params.put("idWorkState", curPM.workState == null ? "" : "" + curPM.workState.id);
         //
         Request r = Request.newReport(Request.ReportType.CARD,
-                "на " + s1 + (workState == null ? "" : " (" + workState.titleForMany + ")"), params);
+                "на " + s1 + (curPM.workState == null ? "" : " (" + curPM.workState.titleForMany + ")"), params);
         RequestDialog dlg = new RequestDialog(r);
         getUI().addWindow(dlg);
     }
 
-
     @Override
-    protected void validate() {
-        dtStartBind.validate();
-    }
-
-    @Override
-    protected boolean isValid() {
-        return dtStartBind.isValid();
+    protected void initToolbar() {
+        super.initToolbar();
+        workCombo.setSelectedItem(curPM.workState);
     }
 
     @Override
@@ -154,7 +170,14 @@ public class CardUnitView extends BaseUnitView {
 
     @Override
     protected void updateData() {
-        updateTitleUpdateInfo();
+        super.updateData();
+
+        String s = "на <b>" + fmtDate8(curPM.dtStart) + "</b>";
+        if (curPM.workState != null) {
+            s += ", только <b>"+curPM.workState.titleForMany+"</b>";
+        }
+        paramsLabel.setValue(s);
+
         dataService.refresh();
     }
 
@@ -173,8 +196,8 @@ public class CardUnitView extends BaseUnitView {
             this.iddfirm = user.getFirm().id;
             this.iddclient = user.getIddClient();
             this.iddsub = user.getIddClentSub();
-            this.dtw = CardUnitView.this.dtStart;
-            this.workstate = CardUnitView.this.workState;
+            this.dtw = curPM.dtStart;
+            this.workstate = curPM.workState;
         }
 
         @Override

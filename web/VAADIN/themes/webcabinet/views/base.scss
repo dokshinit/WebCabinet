@@ -13,33 +13,90 @@
 
       .title-L {
         width: 100%;
-        padding: 5px;
-        background: lighten($xv-bg-color, 55%);
+        padding: 0px 5px;
+        background: lighten($xv-bg-color, 50%);
         color: $xv-bg-color;
-        line-height: 31px; // 41-5-5;
+        line-height: 24px; // 41-5-5;
         border-bottom: solid 1px #c0c0d0;
+        height: 34px;
 
-        .v-spacing {
-          width: 5px;
-        }
         .v-slot {
           vertical-align: middle;
         }
-        .title {
+        .title-label {
           //width: 100%;
           font-size: 18px;
           font-weight: bold;
           vertical-align: middle;
+          line-height: 34px;
         }
-        .info {
-          font-size: 14px;
-          vertical-align: middle;
-        }
-        .v-slot-update {
-          float: right;
 
-          .update {
+        .v-slot-info-label {
+          float: right;
+          margin: 8px 0px;
+
+          .info-label {
+            //font-size: 14px;
             //vertical-align: middle;
+            background: #8080A0;
+            color: white;
+            border-radius: 3px;
+            float: right;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 16px;
+            height: 16px;
+            vertical-align: middle;
+            padding: 0px 3px;
+          }
+        }
+
+        .v-slot-update-button, .v-slot-report-button {
+          float: right;
+          margin: 5px 0px;
+        }
+        .update-button, .report-button {
+          //vertical-align: middle;
+          margin-left: 5px;
+          padding: 1px 2px;
+          font-size: 13px;
+          line-height: 22px;
+          height: 24px;
+          width: 24px;
+        }
+      }
+
+      .params-L {
+        width: 100%;
+        border-bottom: solid 1px #C0C0D0;
+        background: lighten($xv-bg-color, 58%);
+        font-weight: normal;
+        font-size: 14px;
+
+        .params-button {
+          margin: 2px 5px 2px 2px;
+          padding: 0px 3px;
+          height: 22px;
+          width: 22px;
+          line-height: 23px;
+
+          span {
+            //color: #2040B0;
+            font-weight: bold;
+          }
+        }
+
+        .params-label {
+          line-height: 26px;
+          color: $xv-bg-color;
+        }
+
+        .datesrange {
+          font-weight: normal;
+          font-size: 14px;
+
+          b {
+            font-weight: bold;
           }
         }
       }
@@ -64,7 +121,7 @@
         }
 
         .v-caption {
-          color: lighten($xv-bg-color, 20%);
+          color: lighten($xv-bg-color, 10%);
           font-size: 12px;
           padding: 0px;
           vertical-align: bottom;
@@ -101,20 +158,7 @@
         }
       }
 
-      .crtime {
-        background: #8080A0;
-        color: white;
-        border-radius: 3px;
-        float: right;
-        font-size: 12px;
-        font-weight: normal;
-        line-height: 12px;
-        vertical-align: middle;
-        padding: 2px 3px;
-        margin-top: 4px;
-      }
-
-      .accrange {
+      .datesrange {
         font-weight: normal;
         font-size: 14px;
 

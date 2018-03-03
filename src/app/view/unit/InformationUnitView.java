@@ -17,7 +17,7 @@ import static app.view.unit.Helper.*;
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
  */
-public class InformationUnitView extends BaseUnitView {
+public class InformationUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel> {
 
     private VerticalLayout infoL, contractL, accL;
     private Label fixDateLabel, accTitleLabel;
@@ -26,6 +26,18 @@ public class InformationUnitView extends BaseUnitView {
 
     public InformationUnitView() {
         super("information", "Сводная информация");
+    }
+
+    @Override
+    protected void initVars() {
+        hasParams = false;
+        hasUpdate = true;
+        hasReport = false;
+
+        paramsValid = true;
+
+        curPM = new BaseParamsModel(BaseParamsModel.DateLimitEnum.NO, BaseParamsModel.DateLimitEnum.NO,
+                BaseParamsModel.DatesModeEnum.NO, null, null);
     }
 
     @Override
@@ -66,7 +78,7 @@ public class InformationUnitView extends BaseUnitView {
         contractL = style(new VerticalLayout(), "contract-L");
         contractL.setSpacing(false);
 
-        contractGrid = style(new Grid<>(), "contracts-table");
+        contractGrid = style(new Grid<Contract>(), "contracts-table");
         column(contractGrid, Contract::getIdd, null, "IDD", "Код", ST_AL_RIGHT, 60, null);
         column(contractGrid, Contract::getNumber, null, "CNUMBER", "Номер", ST_AL_CENTER, 150, null);
         Grid.Column<Contract, ContractType> typeC =
@@ -121,7 +133,6 @@ public class InformationUnitView extends BaseUnitView {
                         "обработки всех данных за следующие сутки!", ContentMode.HTML), "note", "wrapped-label"),
                 style(new Label("<span class='star'>*</span> Задержка обработки данных, при отсутствии форс-мажорных " +
                         "обстоятельств, может составлять до одного <u>рабочего</u> дня!", ContentMode.HTML), "note", "wrapped-label"));
-
         bodyL.addComponent(accL);
     }
 
@@ -137,7 +148,7 @@ public class InformationUnitView extends BaseUnitView {
 
         try {
             dtFix = model.getFixDate();
-            accTitleLabel.setValue("Лицевые счета <span class='accrange'>(за период с <b>" + fmtDate8(dtFix.withDayOfMonth(1)) +
+            accTitleLabel.setValue("Лицевые счета <span class='datesrange'>(за период с <b>" + fmtDate8(dtFix.withDayOfMonth(1)) +
                     "</b> по <b>" + fmtDate8(dtFix) + "</b><span class='star'>*</span>)</span>");
             fixDateLabel.setValue("<span class='star'>*</span> Дата актуальности данных: <span class='fixdate'>" + fmtDate8(dtFix) + "</span>!");
         } catch (Exception ex) {

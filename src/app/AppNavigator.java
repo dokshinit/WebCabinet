@@ -1,6 +1,5 @@
 package app;
 
-import app.model.AppModel;
 import app.view.MainView;
 import app.view.UnitViewType;
 import com.vaadin.navigator.Navigator;
