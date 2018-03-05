@@ -1,5 +1,6 @@
 package app.view.unit;
 
+import app.AppServlet;
 import app.AppUI;
 import app.ExError;
 import app.dialog.MessageDialog;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static app.view.unit.Helper.*;
 
@@ -75,6 +77,8 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
     protected boolean toolbarAlwaysShowed = false;
 
     public BaseUnitView(String name, String title) {
+        setLocale(AppServlet.LOCALE_RU);
+
         model = AppUI.model();
         user = model.getUser();
         dtFix = null;
@@ -167,7 +171,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         paramsL.setSpacing(false);
 
         if (!toolbarAlwaysShowed) { //VaadinIcons.ANGLE_DOUBLE_DOWN   FORM  BULLETS COG_O
-            paramsButton = style(new Button(VaadinIcons.ANGLE_DOUBLE_DOWN), "small", "params-button", "quiet");
+            paramsButton = style(new Button(VaadinIcons.ANGLE_DOUBLE_DOWN), "small", "params-button");
             paramsButton.setSizeUndefined();
             paramsButton.setEnabled(false);
             paramsButton.setTabIndex(-1);

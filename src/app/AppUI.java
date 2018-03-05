@@ -62,6 +62,7 @@ public class AppUI extends UI {
 //                logger.infof("INITUI: newloc error '%s'", ex.getMessage());
 //            }
 //        }
+        this.setLocale(AppServlet.LOCALE_RU);
 
         model = (AppModel) getSession().getAttribute(AppModel.ATTR_ID);
 

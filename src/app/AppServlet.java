@@ -13,6 +13,7 @@ import javax.servlet.annotation.WebServlet;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 @WebServlet(value = "/*", asyncSupported = true)
@@ -133,10 +134,13 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         super.destroy();
     }
 
+    public static final Locale LOCALE_RU = new Locale("ru");
+
     @Override
     public void sessionInit(SessionInitEvent event) throws ServiceException {
         VaadinSession vs = event.getSession();
         String id = vs.getPushId();
+        vs.setLocale(LOCALE_RU);
 
         logger.infof("Session started! pId=%s", id);
         sessions.put(id, vs);
