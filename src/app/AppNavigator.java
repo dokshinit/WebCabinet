@@ -6,8 +6,13 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewProvider;
+import com.vaadin.server.Page;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.UI;
+
+import java.net.URI;
+
+import static app.AppServlet.logger;
 
 @SuppressWarnings("serial")
 public class AppNavigator extends Navigator {
@@ -112,8 +117,18 @@ public class AppNavigator extends Navigator {
 //        if (name.isEmpty()) name = DEFAULT_VIEW.getViewName();
 //        UnitViewType v = UnitViewType.getByViewName(name);
 //        if (v == null) name = DEFAULT_VIEW.getViewName();
-//        v = UnitViewType.getByViewName(name);
-//        getUI().logAction(v, AppModel.LogActionType.OPENPAGE);
+//
+//        //String url = Page.getCurrent().getUriFragment().toString();
+//        URI uri = Page.getCurrent().getLocation();
+//        String u0 = uri.getScheme();
+//        String u1 = uri.getHost();
+//        String u2 = "" + uri.getPort();
+//        String u3 = uri.getPath();
+//        String u4 = uri.getFragment();
+//
+//        logger.infof("NAVIGATETO: state='%s' name='%s' u='%s'://'%s':'%s'/'%s'#!'%s'", navigationState, name, u0, u1, u2, u3, u4);
+//        //v = UnitViewType.getByViewName(name);
+//        //getUI().logAction(v, AppModel.LogActionType.OPENPAGE);
 //        super.navigateTo(navigationState);
 //    }
 }

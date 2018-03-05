@@ -1,5 +1,6 @@
 package app.view.unit;
 
+import app.model.AppModel;
 import com.vaadin.ui.*;
 
 /**
@@ -14,5 +15,10 @@ public class ErrorUnitView extends BaseUnitView {
     @Override
     protected void buildBodyContent() {
         bodyL.addComponent(new Label("Ошибка приложения!"));
+    }
+
+    @Override
+    protected AppModel.LogActionPage getLogPage() {
+        return AppModel.LogActionPage.ERROR;
     }
 }

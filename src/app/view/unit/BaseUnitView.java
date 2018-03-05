@@ -93,7 +93,10 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         updateButtonsState(false);
     }
 
-    /** Метод для начального задания переменных (до создания UI!). Переопределяется в потомках. */
+    /**
+     * Метод для начального задания переменных (до создания UI!). Вызывается в конструкторе. Переопределяется в
+     * потомках.
+     */
     protected void initVars() {
         // Должно быть переопределено, если требуется модель тулбара задать!
     }
@@ -180,6 +183,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         headL.addComponent(paramsL);
     }
 
+    /** Построение тулбара, вызывается из билда заголовка (если hasParams=true!), переопределяется потомком. */
     protected void buildHeadToolbar() {
     }
 
@@ -252,11 +256,18 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         buildBodyContent();
     }
 
+    /** Построение тела страницы. Переопределяется потомками. */
     protected void buildBodyContent() {
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Успешная валидация. Именно ее надо использовать, а не ValidationResult.ok(), т.к. все проверки делаются именно на
+     * это поле!
+     */
     protected static final ValidationResult VALIDATION_OK = ValidationResult.ok();
 
+    /** Валидация произвольной даты на вхождение в допустимый период. */
     protected ValidationResult validatorDatesLimits(LocalDate dt) {
         // Ограничение начала периода.
         switch (toolbarPM.datesStartLimit) {
@@ -303,7 +314,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         return VALIDATION_OK;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /** Валидация даты как начала периода (или просто даты, если не используется период). */
     protected ValidationResult validatorDtwStart(LocalDate dt, ValueContext valueContext) {
         ValidationResult res = validatorDatesLimits(dt);
         if (res != VALIDATION_OK) return res;
@@ -317,6 +328,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         return VALIDATION_OK;
     }
 
+    /** Валидация даты как конца периода. */
     protected ValidationResult validatorDtwEnd(LocalDate dt, ValueContext valueContext) {
         ValidationResult res = validatorDatesLimits(dt);
         if (res != VALIDATION_OK) return res;
@@ -330,7 +342,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         return VALIDATION_OK;
     }
 
-    // Валидация данных (вызываются валидаторы).
+    /** Валидация данных тулбара (вызываются валидаторы). Дополняется в потомках. */
     protected void validateToolbar() {
         if (toolbarPM.hasDate()) {
             dtStartBind.validate();
@@ -338,7 +350,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         }
     }
 
-    // Проверка состояния валидности данных тулбара (валидаторов нарпимер).
+    /** Проверка состояния валидности данных тулбара (валидаторов нарпимер). Дополняется в потомках. */
     protected boolean isValidToolbar() {
         if (toolbarPM.hasDate()) {
             if (!dtStartBind.isValid()) return false;
@@ -347,9 +359,12 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         return true;
     }
 
-    protected boolean paramsValid = true; // Текущие параметры верны (по умолчанию - да, т.к. начальные)
-    protected boolean toolbarShowing = false; // Открыт тулбар?
-    protected boolean toolbarParamsChanged = false; // Параметры в тулбаре изменены?
+    /** Текущие параметры верны (по умолчанию - да, т.к. начальные). */
+    protected boolean paramsValid = true;
+    /** Открыт тулбар? */
+    protected boolean toolbarShowing = false;
+    /** Параметры в тулбаре изменены? */
+    protected boolean toolbarParamsChanged = false;
 
     protected void updateButtonsState(boolean iserror) {
         if (toolbarShowing) {

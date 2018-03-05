@@ -10,8 +10,8 @@ public class Card {
     public enum WorkState {
         WORK(1, "Рабочая", "Рабочие"),
         LOCK(0, "Запрет", "На запрете"),
-        ARREST(-1, "Арест", "Арестованные"),
-        DESTROY(-2, "Изъята", "Изъятые");
+        ARREST(-1, "Арест", "Арестованные");
+        //DESTROY(-2, "Изъята", "Изъятые");
 
         public int id;
         public String title, titleForMany;

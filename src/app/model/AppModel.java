@@ -128,7 +128,9 @@ public class AppModel {
         TURN(11, "Обороты"),
         TRANS(12, "Транзакции"),
         CARD(13, "Карты"),
-        REQUEST(14, "Заявки");
+        REQUEST(14, "Заявки"),
+        //
+        ERROR(100, "Ошибка");
 
         public int id;
         public String title;
@@ -155,6 +157,8 @@ public class AppModel {
                     return CARD;
                 case REQUESTS:
                     return REQUEST;
+                case ERROR:
+                    return ERROR;
                 default:
                     return null;
             }

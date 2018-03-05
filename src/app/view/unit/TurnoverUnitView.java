@@ -185,7 +185,8 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
         }
 
         try {
-            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtStart);
+            // Отнимаем один день, т.к. сальдо на конец дня считается!
+            ArrayList<Saldo> list = model.loadClientSaldos(user.getFirm().id, user.getIddClient(), user.getIddClentSub(), curPM.dtStart.minusDays(1));
             startGrid.setDataProvider(DataProvider.ofCollection(list));
             setHeightByCollection(startGrid, list);
         } catch (Exception ex) {

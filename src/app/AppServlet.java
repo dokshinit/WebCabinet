@@ -11,6 +11,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -136,6 +137,7 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
     public void sessionInit(SessionInitEvent event) throws ServiceException {
         VaadinSession vs = event.getSession();
         String id = vs.getPushId();
+
         logger.infof("Session started! pId=%s", id);
         sessions.put(id, vs);
         vs.setAttribute(AppModel.ATTR_ID, new AppModel(vs));
@@ -173,7 +175,21 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
         @Override
         public void modifyBootstrapFragment(final BootstrapFragmentResponse response) {
         }
+
+
     }
+
+//
+//    void mmm() {
+//        URI uri = Page.getCurrent().getLocation();
+//        String u0 = uri.getScheme();
+//        String u1 = uri.getHost();
+//        String u2 = "" + uri.getPort();
+//        String u3 = uri.getPath();
+//        String u4 = uri.getFragment();
+//
+//
+//    }
 }
 
 

@@ -16,8 +16,10 @@ import com.vaadin.shared.communication.PushMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.net.URI;
 import java.util.Locale;
 
+import static app.AppServlet.logger;
 import static app.view.unit.Helper.style;
 
 /**
@@ -47,6 +49,20 @@ public class AppUI extends UI {
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+//        Page page = Page.getCurrent();
+//        URI loc = page.getLocation();
+//        logger.infof("INITUI: loc='%s'", loc.toString());
+//        if (!loc.getPath().isEmpty() && !"/".equals(loc.getPath())) {
+//            try {
+//                loc = new URI(loc.getScheme() + "://" + loc.getHost() + ":" + loc.getPort() + "/" +
+//                        (loc.getFragment() == null ? "" : ("#" + loc.getFragment())));
+//                page.setLocation(loc);
+//                logger.infof("INITUI: newloc='%s'", loc.toString());
+//            } catch (Exception ex) {
+//                logger.infof("INITUI: newloc error '%s'", ex.getMessage());
+//            }
+//        }
+
         model = (AppModel) getSession().getAttribute(AppModel.ATTR_ID);
 
         AppServlet.logger.infof("AppUI init! id=%d", getUIId());
