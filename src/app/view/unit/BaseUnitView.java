@@ -24,9 +24,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-import static app.view.unit.Helper.*;
+import static app.model.Helper.*;
+import static app.view.unit.UHelper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -178,6 +178,8 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
             paramsButton.setDescription("Изменить параметры отбора данных");
             paramsButton.addClickListener(e -> fireOnParamsButtonClick());
 
+            //Label c = style(new Label("Tooltip content!<div class='xm-arrow xm-arrow-up'></div>", ContentMode.HTML), "xm-tooltip");
+
             paramsLabel = style(new Label("", ContentMode.HTML), "params-label");
             paramsLabel.setSizeUndefined();
 
@@ -230,7 +232,7 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
     }
 
     protected void buildHeadToolbarButtons() {
-        applyButton = style(new Button("Применить"), "small", "apply-button");
+        applyButton = style(new Button("Применить"), "small", "process-button");
         applyButton.setDescription("Применить изменения");
         applyButton.setEnabled(false);
         if (hasParams) applyButton.addClickListener(e -> fireOnApplyButtonClick());
@@ -326,8 +328,8 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         if (toolbarPM.hasPeriod() && dtwEndField.getValue() != null) {
             if (dt.compareTo(dtwEndField.getValue()) > 0)
                 return ValidationResult.error("Больше даты конца периода!");
-            if (!dt.plusMonths(3).isAfter(dtwEndField.getValue()))
-                return ValidationResult.error("Период больше трёх месяцев!");
+            if (!dt.plusMonths(12).isAfter(dtwEndField.getValue()))
+                return ValidationResult.error("Период больше 12 месяцев!");
         }
         return VALIDATION_OK;
     }
@@ -340,8 +342,8 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
         if (toolbarPM.hasPeriod() && dtwField.getValue() != null) {
             if (dt.compareTo(dtwField.getValue()) < 0)
                 return ValidationResult.error("Меньше даты начала периода!");
-            if (!dt.minusMonths(3).isBefore(dtwField.getValue()))
-                return ValidationResult.error("Период больше трёх месяцев!");
+            if (!dt.minusMonths(12).isBefore(dtwField.getValue()))
+                return ValidationResult.error("Период больше 12 месяцев!");
         }
         return VALIDATION_OK;
     }
@@ -547,15 +549,17 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
                                               String id, String title, StyleGenerator<T> style, int wfix, StyleGenerator<T> gen) {
         Grid.Column<T, V> c = gridColumn(g, prov, pres, id, title, style);
         if (wfix >= 0) {
-            c.setWidth(wfix);
-            c.setMinimumWidth(wfix);
-            c.setMaximumWidth(wfix);
-            c.setExpandRatio(wfix); // ?
+            c.setWidth(wfix);        // Начальный размер (может сбрасываться (-1) или меняться).
+            c.setMinimumWidth(wfix); // Фиксация размера!
+            c.setMaximumWidth(wfix); // Фиксация размера!
+            c.setExpandRatio(0);  // Коэффициент (вес) для растяжения.
             c.setResizable(false);
         } else {
-            c.setWidth(-wfix);
-            c.setMinimumWidth(-wfix);
-            c.setExpandRatio(-wfix);
+            c.setWidth(-wfix);        // Начальный размер (может сбрасываться (-1) или меняться).
+            c.setMinimumWidth(-wfix); // Минимальный размер, максимальный не ограничиваем!
+            c.setMaximumWidth(5000);
+            c.setExpandRatio(-wfix);  // Коэффициент (вес) для растяжения.
+            c.setResizable(true);
         }
         if (gen != null) c.setStyleGenerator(gen);
         return c;
@@ -586,8 +590,8 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
                 showError("Дата начала периода (" + fmtDate8(pm.dtStart) + ") больше даты конца периода (" + fmtDate8(pm.dtEnd) + ")!");
                 return false;
             }
-            if (!pm.dtStart.plusMonths(3).isAfter(pm.dtEnd)) {
-                showError("Период (" + fmtDate8(pm.dtStart) + " - " + fmtDate8(pm.dtEnd) + ") больше трёх месяцев!");
+            if (!pm.dtStart.plusMonths(12).isAfter(pm.dtEnd)) {
+                showError("Период (" + fmtDate8(pm.dtStart) + " - " + fmtDate8(pm.dtEnd) + ") больше 12 месяцев!");
                 return false;
             }
         }

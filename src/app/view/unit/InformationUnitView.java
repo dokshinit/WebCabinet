@@ -12,7 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import static app.AppServlet.logger;
-import static app.view.unit.Helper.*;
+import static app.view.unit.UHelper.*;
+import static app.model.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -87,12 +88,12 @@ public class InformationUnitView extends BaseUnitView<BaseUnitView.BaseParamsMod
         column(contractGrid, Contract::getDtSign, Helper::fmtDate8, "DTSIGN", "Подписан", ST_AL_CENTER, 100, null);
         column(contractGrid, Contract::getDtStartFact, Helper::fmtDate8, "DTSTARTFACT", "Начало", ST_AL_CENTER, 100, null);
         column(contractGrid, Contract::getDtEndFact, Helper::fmtDate8, "DTENDFACT", "Завершение", ST_AL_CENTER, 100, null);
-        column(contractGrid, Contract::getExpiredState, Contract::getExpiredTitle, "IEXPIRED", "Состояние", ST_AL_CENTER, 100, null);
+        column(contractGrid, Contract::getExpiredState, Contract::getExpiredTitle, "IEXPIRED", "Состояние", ST_AL_CENTER, -99, null);
         contractGrid.setSelectionMode(Grid.SelectionMode.NONE);
         contractGrid.setColumnReorderingAllowed(false);
         contractGrid.setWidth("660px");
         setRowHeight(contractGrid);
-        contractGrid.setStyleGenerator(Contract::getExpiredStyle);
+        //contractGrid.setStyleGenerator(Contract::getExpiredStyle);
         contractL.addComponents(style(new Label("Договоры"), "hhh"), contractGrid);
         //contractL.setExpandRatio(contractGrid, 1);
 
@@ -113,7 +114,7 @@ public class InformationUnitView extends BaseUnitView<BaseUnitView.BaseParamsMod
         column(accGrid, Acc::getDbStart, Helper::fmtN2, "DBSTART", "Нач.остаток*", ST_AL_RIGHT, 125, v -> rightNeg(v.getDbStart()));
         column(accGrid, Acc::getDbPay, Helper::fmtN2, "DBPAY", "Приход*", ST_AL_RIGHT, 125, null);
         column(accGrid, Acc::getDbSale, Helper::fmtN2, "DBTRANS", "Расход*", ST_AL_RIGHT, 125, null);
-        column(accGrid, Acc::getDbEnd, Helper::fmtN2, "DBEND", "Тек.остаток*", ST_AL_RIGHT, 125, v -> rightNeg(v.getDbEnd()));
+        column(accGrid, Acc::getDbEnd, Helper::fmtN2, "DBEND", "Тек.остаток*", ST_AL_RIGHT, 124, v -> rightNeg(v.getDbEnd()));
         HeaderRow r = accGrid.getDefaultHeaderRow();
         r.getCell("DBSTART").setHtml("Нач.остаток<span class='star'>*</span>");
         r.getCell("DBPAY").setHtml("Приход<span class='star'>*</span>");

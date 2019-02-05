@@ -3,13 +3,15 @@ package app.view.unit;
 import app.ExError;
 import app.dialog.RequestDialog;
 import app.model.*;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
 
 import java.time.LocalDate;
 import java.util.*;
 
-import static app.view.unit.Helper.*;
+import static app.view.unit.UHelper.*;
+import static app.model.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -70,6 +72,33 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         } catch (Exception ex) {
             curPM.dtStart = LocalDate.now().withDayOfMonth(1);
             curPM.dtEnd = curPM.dtStart.plusMonths(1).minusDays(1);
+        }
+    }
+
+    protected Button exportButton;
+
+    @Override
+    protected void buildHeadTitle(String title) {
+        super.buildHeadTitle(title);
+
+        exportButton = style(new Button(VaadinIcons.AUTOMATION), "small", "report-button");
+        exportButton.setSizeUndefined();
+        exportButton.setEnabled(false);
+        exportButton.setTabIndex(-1);
+        exportButton.setDescription("Запросить экспорт данных");
+        exportButton.addClickListener(e -> fireOnExportButtonClick()); // vaadin:newspaper
+        titleL.addComponent(exportButton, 0);
+    }
+
+    @Override
+    protected void updateButtonsState(boolean iserror) {
+        super.updateButtonsState(iserror);
+        if (toolbarShowing) { // Если тулбар показан.
+            if (exportButton != null)
+                exportButton.setEnabled(paramsValid && toolbarAlwaysShowed && !toolbarParamsChanged);
+        } else {
+            // Только при успешном чтении даты фиксации! Т.к. проверка дат, чтобы были не старше!
+            if (exportButton != null) exportButton.setEnabled(paramsValid);
         }
     }
 
@@ -155,13 +184,28 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
     protected void fireOnReportButtonClick() {
         if (!checkForStartAndFix(curPM)) return;
 
-        HashMap<String, String> params = new HashMap<>();
         String s1, s2;
-        params.put("dtStart", s1 = fmtDate8(curPM.dtStart));
-        params.put("dtEnd", s2 = fmtDate8(curPM.dtEnd));
-        params.put("iddAzs", curPM.getAzsIddAsString());
+        RequestBase.ParamsMap params = new RequestBase.ParamsMap()
+                .put("dtStart", s1 = fmtDate8(curPM.dtStart))
+                .put("dtEnd", s2 = fmtDate8(curPM.dtEnd))
+                .put("iddAzs", curPM.getAzsIddAsString());
         //
         Request r = Request.newReport(Request.ReportType.TRANSACTION,
+                "за период с " + s1 + " по " + s2 + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd()), params);
+        RequestDialog dlg = new RequestDialog(r);
+        getUI().addWindow(dlg);
+    }
+
+    protected void fireOnExportButtonClick() {
+        if (!checkForStartAndFix(curPM)) return;
+
+        String s1, s2;
+        RequestBase.ParamsMap params = new RequestBase.ParamsMap()
+                .put("dtStart", s1 = fmtDate8(curPM.dtStart))
+                .put("dtEnd", s2 = fmtDate8(curPM.dtEnd))
+                .put("iddAzs", curPM.getAzsIddAsString());
+        //
+        Request r = Request.newExport(Request.ExportType.TRANSACTION,
                 "за период с " + s1 + " по " + s2 + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd()), params);
         RequestDialog dlg = new RequestDialog(r);
         getUI().addWindow(dlg);

@@ -68,7 +68,8 @@ public final class LoggerExt extends Logger {
 
     private FileUpdateCheck fileCheck;
     public static final FileUpdateCheck FILE_UPDATE_NO = (log) -> false;
-    public static final FileUpdateCheck FILE_UPDATE_DATE = (log) -> !log.getFileDT().toLocalDate().equals(LocalDate.now());
+    public static final FileUpdateCheck FILE_UPDATE_DATE = (log) ->
+            log.getFileDT() != null && !log.getFileDT().toLocalDate().equals(LocalDate.now());
 
     private int mask; // Маска для управления логированием (для пользовательского управления выводом информации в лог), самим логгером не используется!
 

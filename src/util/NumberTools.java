@@ -15,41 +15,63 @@ import java.text.NumberFormat;
  */
 public class NumberTools {
 
-    /**
-     * Предопределенный формат для вывода с точностью 0 знаков после запятой.
-     */
-    public static NumberFormat format0 = new DecimalFormat("#,##0");
-    /**
-     * Предопределенный формат для вывода с точностью 1 знак после запятой.
-     */
-    public static NumberFormat format1 = new DecimalFormat("#,##0.0");
-    /**
-     * Предопределенный формат для вывода с точностью 2 знака после запятой.
-     */
-    public static NumberFormat format2 = new DecimalFormat("#,##0.00");
-    /**
-     * Предопределенный формат для вывода с точностью 3 знака после запятой.
-     */
-    public static NumberFormat format3 = new DecimalFormat("#,##0.000");
+    /** Предопределенный формат для вывода с точностью 0 знаков после запятой. Без триад. */
+    public static NumberFormat FMT_N0 = new DecimalFormat("#0");
+    /** Предопределенный формат для вывода с точностью 0 знаков после запятой. С триадами. */
+    public static NumberFormat FMT_N0T = new DecimalFormat("#,##0");
+    /** Предопределенный формат для вывода с точностью 1 знак после запятой. Без триад. */
+    public static NumberFormat FMT_N1 = new DecimalFormat("#0.0");
+    /** Предопределенный формат для вывода с точностью 1 знак после запятой. С триадами. */
+    public static NumberFormat FMT_N1T = new DecimalFormat("#,##0.0");
+    /** Предопределенный формат для вывода с точностью 2 знака после запятой. Без триад. */
+    public static NumberFormat FMT_N2 = new DecimalFormat("#0.00");
+    /** Предопределенный формат для вывода с точностью 2 знака после запятой. С триадами. */
+    public static NumberFormat FMT_N2T = new DecimalFormat("#,##0.00");
+    /** Предопределенный формат для вывода с точностью 3 знака после запятой. Без триад. */
+    public static NumberFormat FMT_N3 = new DecimalFormat("#0.000");
+    /** Предопределенный формат для вывода с точностью 3 знака после запятой. С триадами. */
+    public static NumberFormat FMT_N3T = new DecimalFormat("#,##0.000");
 
     /**
-     * Возвращает форматер для заданного кол-ва знаков после зяпятой.
+     * Возвращает форматер для заданного кол-ва знаков после зяпятой и призанака использования триад.
+     *
+     * @param digits   Кол-во знаков после запятой (0-3).
+     * @param istriads Флаг использования триад: true - с триадами, false - без триад.
+     * @return Форматер.
+     */
+    public static NumberFormat getFormat(int digits, boolean istriads) {
+        switch (digits) {
+            case 0:
+                return istriads ? FMT_N0T : FMT_N0;
+            case 1:
+                return istriads ? FMT_N1T : FMT_N1;
+            case 2:
+                return istriads ? FMT_N2T : FMT_N2;
+            case 3:
+                return istriads ? FMT_N3T : FMT_N3;
+            default:
+                return istriads ? FMT_N0T : FMT_N0;
+        }
+    }
+
+    /**
+     * Возвращает форматер для заданного кол-ва знаков после зяпятой (по умолчанию без триад!).
      *
      * @param digits Кол-во знаков после запятой (0-3).
      * @return Форматер.
      */
     public static NumberFormat getFormat(int digits) {
-        switch (digits) {
-            case 0:
-                return format0;
-            case 1:
-                return format1;
-            case 2:
-                return format2;
-            case 3:
-                return format3;
-        }
-        return format0;
+        return getFormat(digits, false);
+    }
+
+    /**
+     * Возвращает форматер для заданного кол-ва знаков после зяпятой (с использованием триад!).
+     *
+     * @param digits Кол-во знаков после запятой (0-3).
+     * @return Форматер.
+     */
+    public static NumberFormat getFormatT(int digits) {
+        return getFormat(digits, true);
     }
 
     /**
@@ -62,7 +84,7 @@ public class NumberTools {
      * @return Форматированная строка.
      */
     public static String integerToFormatString(Integer value, NumberFormat f,
-            String sNull, String sZero) {
+                                               String sNull, String sZero) {
         if (value == null) {
             return sNull;
         }
@@ -82,7 +104,7 @@ public class NumberTools {
      * @return Форматированная строка.
      */
     public static String doubleToFormatString(Double value, NumberFormat f,
-            String sNull, String sZero) {
+                                              String sNull, String sZero) {
         if (value == null) {
             return sNull;
         }
@@ -98,10 +120,8 @@ public class NumberTools {
      * @param src Строка-число.
      * @return Число; null - строка не задана, пустая или имеет неверный формат.
      */
-    public static Integer parseInt(String src) {
-        if (src == null) {
-            return null;
-        }
+    public static Integer parseIntSafe(String src) {
+        if (src == null) return null;
         try {
             return Integer.parseInt(src);
         } catch (Exception ex) {
@@ -109,9 +129,15 @@ public class NumberTools {
         }
     }
 
+    public static int parseIntSafe(String src, int unnullvalue) {
+        Integer i = parseIntSafe(src);
+        return i == null ? unnullvalue : i;
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     ////////////////////////////////////////////////////////////////////////////
+
     /**
      * Создание объекта Integer из разных видов объектов.
      *
@@ -173,9 +199,8 @@ public class NumberTools {
     }
 
     /**
-     * Сравнение всех значений на равенство нулю. ВНИМАНИЕ! BigDecimal.ZERO.equals() не даёт
-     * корректного результата т.к. возвращает false при несовпадении scale даже если значения равны
-     * нулю!
+     * Сравнение всех значений на равенство нулю. ВНИМАНИЕ! BigDecimal.ZERO.equals() не даёт корректного результата т.к.
+     * возвращает false при несовпадении scale даже если значения равны нулю!
      *
      * @param values Список значений.
      * @return true - все равны нулю, false - не все равны нулю.

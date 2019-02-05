@@ -14,7 +14,7 @@ import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
-import static app.view.unit.Helper.style;
+import static app.view.unit.UHelper.style;
 
 /**
  * Компонент, реализующий процесс авторизации пользователя (готовый контент UI).

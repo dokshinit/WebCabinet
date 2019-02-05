@@ -8,7 +8,7 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Responsive;
 import com.vaadin.ui.*;
 
-import static app.view.unit.Helper.*;
+import static app.view.unit.UHelper.*;
 
 @SuppressWarnings("serial")
 public class MainView extends HorizontalLayout {

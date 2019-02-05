@@ -16,11 +16,9 @@ import com.vaadin.shared.communication.PushMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.net.URI;
 import java.util.Locale;
 
-import static app.AppServlet.logger;
-import static app.view.unit.Helper.style;
+import static app.view.unit.UHelper.style;
 
 /**
  * @author lex

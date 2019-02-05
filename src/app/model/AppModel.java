@@ -10,7 +10,6 @@ import fbdbengine.FB_Database;
 import fbdbengine.FB_Query;
 import util.StringTools;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -446,7 +445,7 @@ public class AppModel {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public ArrayList<Request> loadRequests(LocalDate dtstart, LocalDate dtend, Request.Type type, Request.Mode mode,
+    public ArrayList<Request> loadRequests(LocalDate dtstart, LocalDate dtend, Request.Type type, Request.FilterMode mode,
                                            int offset, int limit, String sort) throws ExError {
         final ArrayList<Request> list = new ArrayList<>();
         QFB((con) -> {
@@ -470,7 +469,7 @@ public class AppModel {
         return list;
     }
 
-    public int loadRequestsCount(LocalDate dtstart, LocalDate dtend, Request.Type type, Request.Mode mode) throws ExError {
+    public int loadRequestsCount(LocalDate dtstart, LocalDate dtend, Request.Type type, Request.FilterMode mode) throws ExError {
         final int[] count = {0};
         QFB((con) -> {
             Integer itype = type == null ? null : type.id;
@@ -491,16 +490,16 @@ public class AppModel {
             req.updateByCreate(q.getInteger("ID"), q.getLocalDateTime("DTCREATE"));
             q.closeSafe();
 
-            if (req.getType() == Request.Type.CARDCHANGE && !req.getCardItems().isEmpty()) {
-                q = con.query("SELECT ID FROM W_REQUEST_ADDCARD(?,?,?,?,?,?,?,?)");
-
-                for (Request.CardItem it : req.getCardItems()) {
-                    Integer wrk = it.getWork() == null ? null : it.getWork().id;
-                    q.execute(req.getId(), it.getIdd(), it.getDriver(), it.getCar(), it.getDayLimit(), it.getOilLimit(), it.getAzsLimit(), wrk);
-                    if (!q.next()) throw new ExError("Ошибка добавления карты в заявку!");
-                }
-                q.closeSafe();
-            }
+//            if (req.getType() == Request.Type.CARDCHANGE && !req.getCardItems().isEmpty()) {
+//                q = con.query("SELECT ID FROM W_REQUEST_ADDCARD(?,?,?,?,?,?,?,?)");
+//
+//                for (Request.CardItem it : req.getCardItems()) {
+//                    Integer wrk = it.getWork() == null ? null : it.getWork().id;
+//                    q.execute(req.getId(), it.getIdd(), it.getDriver(), it.getCar(), it.getDayLimit(), it.getOilLimit(), it.getAzsLimit(), wrk);
+//                    if (!q.next()) throw new ExError("Ошибка добавления карты в заявку!");
+//                }
+//                q.closeSafe();
+//            }
             con.commit();
         });
     }

@@ -8,7 +8,8 @@ import com.vaadin.ui.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import static app.view.unit.Helper.*;
+import static app.view.unit.UHelper.*;
+import static app.model.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -17,7 +18,7 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
 
     class PM extends BaseUnitView.BaseParamsModel<PM> {
         public Request.Type reqType;
-        public Request.Mode reqMode;
+        public Request.FilterMode reqMode;
 
         PM() {
             super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.NOW,
@@ -37,7 +38,7 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
     }
 
     private ComboBox<Request.Type> reqTypeCombo;
-    private ComboBox<Request.Mode> reqModeCombo;
+    private ComboBox<Request.FilterMode> reqModeCombo;
     private Grid<Request> grid;
     private SingleSelect<Request> singleSelect;
     private RequestDataService dataService;
@@ -85,9 +86,9 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
         reqModeCombo.setTextInputAllowed(false);
         reqModeCombo.setEmptySelectionAllowed(true);
         reqModeCombo.setEmptySelectionCaption("< Все >");
-        reqModeCombo.setItemCaptionGenerator(Request.Mode::getTitle);
+        reqModeCombo.setItemCaptionGenerator(Request.FilterMode::getTitle);
         reqModeCombo.addValueChangeListener((e) -> fireOnModeChanged(e.getValue()));
-        reqModeCombo.setItems(Request.Mode.values());
+        reqModeCombo.setItems(Request.FilterMode.values());
         reqModeCombo.setWidth("140px");
 
         HorizontalLayout typeL = new HorizontalLayout(reqTypeCombo, reqModeCombo);
@@ -142,7 +143,7 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
         updateButtonsState(!isValidToolbar());
     }
 
-    private void fireOnModeChanged(Request.Mode mode) {
+    private void fireOnModeChanged(Request.FilterMode mode) {
         toolbarPM.reqMode = mode;
         toolbarParamsChanged = true;
         updateButtonsState(!isValidToolbar());
@@ -170,7 +171,7 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
 
         private LocalDate dtstart, dtend;
         private Request.Type type;
-        private Request.Mode mode;
+        private Request.FilterMode mode;
 
         public RequestDataService(Grid<Request> grid) {
             super(grid);

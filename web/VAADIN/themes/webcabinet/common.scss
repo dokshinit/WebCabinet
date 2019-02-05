@@ -283,4 +283,103 @@
   .v-filterselect-suggestpopup {
     font-size: 15px;
   }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  .xm-tooltip, .xm-tooltip .xm-arrow:after {
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 1;
+    border: 2px solid white;
+  }
+
+  .xm-tooltip {
+    pointer-events: none;
+    opacity: 1;
+    display: inline-block;
+    position: absolute;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 15px;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+    text-decoration: none;
+    //text-transform: uppercase;
+    -webkit-box-shadow: 0 0 7px black;
+    -moz-box-shadow: 0 0 7px black;
+    box-shadow: 0 0 7px black;
+    z-index: 900;
+
+    .xm-arrow {
+      overflow: hidden;
+      position: absolute;
+
+      &:after {
+        content: "";
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        -webkit-box-shadow: 6px 5px 9px -9px black, 5px 6px 9px -9px black;
+        -moz-box-shadow: 6px 5px 9px -9px black, 5px 6px 9px -9px black;
+        box-shadow: 6px 5px 9px -9px black, 5px 6px 9px -9px black;
+        -webkit-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        transform: rotate(45deg);
+        z-index: 901;
+      }
+    }
+
+    .xm-arrow-down {
+      width: 70px;
+      height: 16px;
+      left: 50%;
+      margin-left: -35px;
+      bottom: -16px;
+
+      &:after {
+        left: 20px;
+        top: -20px;
+      }
+    }
+
+    .xm-arrow-up {
+      width: 70px;
+      height: 16px;
+      left: 50%;
+      margin-left: -35px;
+      top: -16px;
+
+      &:after {
+        left: 20px;
+        bottom: -20px;
+      }
+    }
+
+    .xm-arrow-left {
+      width: 16px;
+      height: 70px;
+      top: 50%;
+      margin-top: -35px;
+      left: -15.5px;
+
+      &:after {
+        right: -22px;
+        top: 20px;
+      }
+    }
+
+    .xm-arrow-right {
+      width: 16px;
+      height: 70px;
+      top: 50%;
+      margin-top: -35px;
+      right: -15.5px;
+
+      &:after {
+        left: -22px;
+        top: 20px;
+      }
+    }
+  }
 }

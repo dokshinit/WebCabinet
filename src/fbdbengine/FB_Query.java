@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
-//import javafx.beans.property.Property;
 
 /**
  * Класс реализующий механизм для выполнения запросов к базе данных. Может создаваться в двух вариантах: как отдельный

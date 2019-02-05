@@ -24,6 +24,9 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
     /**
      * Логгер.
      */
+    static {
+        LoggerExt.setConsoleFormatter(new LogFormatter(true, false, true));
+    }
     public static final LoggerExt logger = LoggerExt.getNewLogger("AppServlet").enable(true);
 
     /**
@@ -170,10 +173,15 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
                     .attr("name", "apple-mobile-web-app-status-bar-style")
                     .attr("content", "black-translucent");
 
+            // Аттрибуты для нормального отображения иконки приложения на вкладках браузера.
             String contextPath = response.getRequest().getContextPath();
+            String logo = contextPath + "/VAADIN/themes/webcabinet/favicon.ico";
+            head.getElementsByAttributeValue("rel", "shortcut icon")
+                    .attr("href", logo);
+            head.getElementsByAttributeValue("rel", "icon")
+                    .attr("href", logo);
             head.appendElement("link")
-                    .attr("rel", "apple-touch-icon")
-                    .attr("href", contextPath + "/VAADIN/themes/webcabinet/img/app-icon.png");
+                    .attr("rel", "apple-touch-icon").attr("href", logo);
         }
 
         @Override

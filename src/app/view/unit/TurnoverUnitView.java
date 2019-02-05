@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static app.AppServlet.logger;
-import static app.view.unit.Helper.*;
+import static app.view.unit.UHelper.*;
+import static app.model.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -71,7 +72,7 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
         startGrid = style(new Grid<>(), "start-table");
         column(startGrid, Saldo::getAccType, v -> v.title, "ITYPE", "Тип", ST_AL_LEFT, 180, null);
         column(startGrid, Saldo::getOil, v -> v != null ? v.abbreviation : "", "IDDOIL", "Н/П", ST_AL_CENTER, 100, null);
-        column(startGrid, Saldo::getSaldo, v -> fmtN2(v), "DBSALDO", "Нач.остаток", ST_AL_RIGHT, 120, v -> rightNeg(v.getSaldo()));
+        column(startGrid, Saldo::getSaldo, v -> fmtN2(v), "DBSALDO", "Нач.остаток", ST_AL_RIGHT, 119, v -> rightNeg(v.getSaldo()));
         startGrid.setSelectionMode(Grid.SelectionMode.NONE);
         startGrid.setColumnReorderingAllowed(false);
         startGrid.setWidth("400px");
@@ -85,7 +86,7 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
         column(saleGrid, Sale::getOil, v -> v.abbreviation, "IDDOIL", "Н/П", ST_AL_LEFT, 80, null);
         column(saleGrid, Sale::getPrice, v -> v == 0 ? "о/х" : fmtN2(v), "DBPRICE", "Цена (руб.)", ST_AL_RIGHT, 100, null);
         column(saleGrid, Sale::getVolume, v -> fmtN2(v), "DBVOLUME", "Кол-во (л.)", ST_AL_RIGHT, 100, null);
-        column(saleGrid, Sale::getSumma, v -> v == 0 ? "---" : fmtN2(v), "DBSUMMA", "Сумма (руб.)", ST_AL_RIGHT, 120, null);
+        column(saleGrid, Sale::getSumma, v -> v == 0 ? "---" : fmtN2(v), "DBSUMMA", "Сумма (руб.)", ST_AL_RIGHT, 119, null);
         FooterRow f = saleGrid.prependFooterRow();
         f.setStyleName("summary");
         FooterCell c1 = f.join(f.getCell("IDDOIL"), f.getCell("DBPRICE"));
@@ -107,7 +108,7 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
         column(payGrid, Pay::getOil, v -> v != null ? v.abbreviation : "", "IDDOIL", "Н/П", ST_AL_CENTER, 80, null);
         column(payGrid, Pay::getVolume, v -> fmtN2(v), "DBVOLUME", "Объём (л.)", ST_AL_RIGHT, 100, null);
         column(payGrid, Pay::getSumma, v -> fmtN2(v), "DBSUMMA", "Сумма (руб.)", ST_AL_RIGHT, 120, v -> rightNeg(v.getSumma()));
-        column(payGrid, Pay::getDoc, null, "CDOC", "Документ", ST_AL_LEFT, 200, null);
+        column(payGrid, Pay::getDoc, null, "CDOC", "Документ", ST_AL_LEFT, 199, null);
         FooterRow f = payGrid.prependFooterRow();
         f.setStyleName("summary");
         FooterCell c1 = f.join(f.getCell("DTW"), f.getCell("IDDOIL"));
@@ -127,7 +128,7 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
         endGrid = style(new Grid<>(), "end-table");
         column(endGrid, Saldo::getAccType, v -> v.title, "ITYPE", "Тип", ST_AL_LEFT, 180, null);
         column(endGrid, Saldo::getOil, v -> v != null ? v.title : "", "IDDOIL", "Н/П", ST_AL_CENTER, 100, null);
-        column(endGrid, Saldo::getSaldo, v -> fmtN2(v), "DBSALDO", "Кон.остаток", ST_AL_RIGHT, 120, v -> rightNeg(v.getSaldo()));
+        column(endGrid, Saldo::getSaldo, v -> fmtN2(v), "DBSALDO", "Кон.остаток", ST_AL_RIGHT, 119, v -> rightNeg(v.getSaldo()));
         endGrid.setSelectionMode(Grid.SelectionMode.NONE);
         endGrid.setColumnReorderingAllowed(false);
         endGrid.setWidth("400px");
@@ -149,10 +150,10 @@ public class TurnoverUnitView extends BaseUnitView<BaseUnitView.BaseParamsModel>
     protected void fireOnReportButtonClick() {
         if (!checkForStartAndFix(curPM)) return;
 
-        HashMap<String, String> params = new HashMap<>();
         String s1, s2;
-        params.put("dtStart", s1 = fmtDate8(curPM.dtStart));
-        params.put("dtEnd", s2 = fmtDate8(curPM.dtEnd));
+        RequestBase.ParamsMap params = new RequestBase.ParamsMap()
+                .put("dtStart", s1 = fmtDate8(curPM.dtStart))
+                .put("dtEnd", s2 = fmtDate8(curPM.dtEnd));
         //
         Request r = Request.newReport(Request.ReportType.TURNOVER, "за период с " + s1 + " по " + s2, params);
         RequestDialog dlg = new RequestDialog(r);

@@ -18,8 +18,8 @@ import java.io.FileInputStream;
 import java.util.Optional;
 
 import static app.AppServlet.logger;
-import static app.view.unit.Helper.fmtDT86;
-import static app.view.unit.Helper.style;
+import static app.model.Helper.fmtDT86;
+import static app.view.unit.UHelper.style;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (05.12.17).
@@ -81,17 +81,17 @@ public class RequestDialog extends Window implements Button.ClickListener {
         return l2;
     }
 
-    class ReportModeItem {
+    class ModeItem {
         int id;
         String title;
 
-        public ReportModeItem(int id, String title) {
+        public ModeItem(int id, String title) {
             this.id = id;
             this.title = title;
         }
     }
 
-    ComboBox<ReportModeItem> modeCombo;
+    ComboBox<ModeItem> modeCombo;
 
     private void buildUI() {
 
@@ -108,36 +108,37 @@ public class RequestDialog extends Window implements Button.ClickListener {
         Label l2 = addLine("Параметры", request.getParamsTitle());
         l2.setDescription(request.getParamsAsHTML(), ContentMode.HTML);
 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (request.getType() == Request.Type.REPORT) {
             modeCombo = style(new ComboBox<>(), "small", "report-mode");
             modeCombo.setEmptySelectionAllowed(false);
             modeCombo.setTextInputAllowed(false);
             modeCombo.setItemCaptionGenerator(e -> e.title);
 
-            ReportModeItem[] items = null;
-            ReportModeItem defItem = null;
+            ModeItem[] items = null;
+            ModeItem defItem = null;
 
             switch (request.getReportType()) {
                 case TURNOVER:
                     break;
                 case TRANSACTION:
-                    items = new ReportModeItem[]{
-                            new ReportModeItem(1, "Без группировки"),
-                            defItem = new ReportModeItem(2, "Группировка по картам"),
-                            new ReportModeItem(3, "Группировка по видам Н/П"),
-                            new ReportModeItem(4, "Группировка по картам и видам Н/П"),
-                            new ReportModeItem(5, "Группировка по видам Н/П и картам")};
+                    items = new ModeItem[]{
+                            new ModeItem(1, "Без группировки"),
+                            defItem = new ModeItem(2, "Группировка по картам"),
+                            new ModeItem(3, "Группировка по видам Н/П"),
+                            new ModeItem(4, "Группировка по картам и видам Н/П"),
+                            new ModeItem(5, "Группировка по видам Н/П и картам")};
                     break;
                 case CARD:
-                    items = new ReportModeItem[]{
-                            new ReportModeItem(1, "Без группировки"),
-                            defItem = new ReportModeItem(2, "Группировка по состоянию")};
+                    items = new ModeItem[]{
+                            new ModeItem(1, "Без группировки"),
+                            defItem = new ModeItem(2, "Группировка по состоянию")};
                     break;
             }
             if (defItem != null) {
                 modeCombo.setItems(items);
                 Integer id = request.getReportModeParam();
-                if (id != null) for (ReportModeItem i : items) if (i.id == id) defItem = i;
+                if (id != null) for (ModeItem i : items) if (i.id == id) defItem = i;
                 modeCombo.setSelectedItem(defItem);
                 if (isRO) {
                     modeCombo.setEnabled(false);
@@ -147,6 +148,38 @@ public class RequestDialog extends Window implements Button.ClickListener {
                 }
             }
         }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        if (request.getType() == Request.Type.EXPORT) {
+            modeCombo = style(new ComboBox<>(), "small", "report-mode");
+            modeCombo.setEmptySelectionAllowed(false);
+            modeCombo.setTextInputAllowed(false);
+            modeCombo.setItemCaptionGenerator(e -> e.title);
+
+            ModeItem[] items = null;
+            ModeItem defItem = null;
+
+            switch (request.getExportType()) {
+                case TRANSACTION:
+                    items = new ModeItem[]{
+                            defItem = new ModeItem(1, "XLS - Microsoft Excel 97-2003")};
+                    break;
+            }
+            if (defItem != null) {
+                modeCombo.setItems(items);
+                Integer id = request.getExportModeParam();
+                if (id != null) for (ModeItem i : items) if (i.id == id) defItem = i;
+                modeCombo.setSelectedItem(defItem);
+                if (isRO) {
+                    modeCombo.setEnabled(false);
+                    addLine("Формат экспорта", defItem.title);
+                } else {
+                    addLine("Формат экспорта", modeCombo);
+                }
+            }
+        }
+
+
         if (isRO) {
             if (request.getDtProcess() != null) addLine("Обработана", fmtDT86(request.getDtProcess()));
             if (request.getFileSize() != null) {
@@ -170,7 +203,7 @@ public class RequestDialog extends Window implements Button.ClickListener {
                 FileDownloader fileDownloader = new FileDownloader(myResource);
                 fileDownloader.extend(fbutt);
 
-                fbutt.addClickListener((e)-> {
+                fbutt.addClickListener((e) -> {
                     fbutt.setEnabled(false);
                     fbutt.setDescription("Для повторного скачивания откройте заявку заново");
                 });
@@ -223,11 +256,20 @@ public class RequestDialog extends Window implements Button.ClickListener {
                 if (checkSend.getValue()) {
                     request.setSendTryRemain(3); // Указываем 3 попытки отправки.
                 }
-                Optional<ReportModeItem> item = modeCombo.getSelectedItem();
-                if (item.isPresent()) request.setReportModeParam(item.get().id);
+                Optional<ModeItem> item;
+                switch (request.getType()) {
+                    case REPORT:
+                        item = modeCombo.getSelectedItem();
+                        if (item.isPresent()) request.setReportModeParam(item.get().id);
+                        break;
+                    case EXPORT:
+                        item = modeCombo.getSelectedItem();
+                        if (item.isPresent()) request.setExportModeParam(item.get().id);
+                        break;
+                }
                 AppModel.get().createRequest(request);
             } catch (ExError ex) {
-                MessageDialog dlg = MessageDialog.showInfo(getUI(), "Ошибка создания запроса!", ex.getMessage());
+                MessageDialog dlg = MessageDialog.showInfo(getUI(), "Ошибка создания заявки!", ex.getMessage());
                 getUI().addWindow(dlg);
             }
         }

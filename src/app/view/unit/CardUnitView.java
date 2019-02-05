@@ -2,10 +2,7 @@ package app.view.unit;
 
 import app.ExError;
 import app.dialog.RequestDialog;
-import app.model.AccType;
-import app.model.AppModel;
-import app.model.Card;
-import app.model.Request;
+import app.model.*;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.data.provider.GridSortOrderBuilder;
 import com.vaadin.ui.*;
@@ -14,7 +11,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static app.view.unit.Helper.*;
+import static app.model.Helper.*;
+import static app.view.unit.UHelper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).
@@ -26,7 +24,8 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
 
         PM() {
             super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
-                    BaseParamsModel.DatesModeEnum.DATE, null, null);;
+                    BaseParamsModel.DatesModeEnum.DATE, null, null);
+            ;
             workState = null;
         }
 
@@ -100,7 +99,7 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
         Grid.Column<Card, String> c1;
         Grid.Column<Card, Card.WorkState> c2;
         column(grid, Card::getDtw, Helper::fmtDate8, "DTW", "Изменена", ST_AL_CENTER, -90, null).setHidable(true);
-        //column(grid, Card::getDtwEnd, Helper::fmtDate8, "DTWEND", "Завершение", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
+        //column(grid, Card::getDtwEnd, UHelper::fmtDate8, "DTWEND", "Завершение", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
         c1 = column(grid, Card::getIddCard, null, "IDD", "№", ST_AL_CENTER, -90, null);
         column(grid, Card::getAccType, AccType::getAbbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, -50, null).setHidable(true);
         c2 = column(grid, Card::getWorkState, Card.WorkState::getTitle, "IBWORK", "Состояние", ST_AL_CENTER, -90, null).setHidable(true);
@@ -146,10 +145,10 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
     protected void fireOnReportButtonClick() {
         if (!checkForStartAndFix(curPM)) return;
 
-        HashMap<String, String> params = new HashMap<>();
         String s1;
-        params.put("dtw", s1 = fmtDate8(curPM.dtStart));
-        params.put("idWorkState", curPM.workState == null ? "" : "" + curPM.workState.id);
+        RequestBase.ParamsMap params = new RequestBase.ParamsMap()
+                .put("dtw", s1 = fmtDate8(curPM.dtStart))
+                .put("idWorkState", curPM.workState == null ? "" : "" + curPM.workState.id);
         //
         Request r = Request.newReport(Request.ReportType.CARD,
                 "на " + s1 + (curPM.workState == null ? "" : " (" + curPM.workState.titleForMany + ")"), params);
@@ -174,7 +173,7 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
 
         String s = "на <b>" + fmtDate8(curPM.dtStart) + "</b>";
         if (curPM.workState != null) {
-            s += ", только <b>"+curPM.workState.titleForMany+"</b>";
+            s += ", только <b>" + curPM.workState.titleForMany + "</b>";
         }
         paramsLabel.setValue(s);
 

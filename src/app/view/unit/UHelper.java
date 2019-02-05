@@ -6,17 +6,13 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.ui.AbstractComponent;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.StyleGenerator;
-import util.NumberTools;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (27.12.17).
  */
-public class Helper {
+public class UHelper {
 
     public static final int ROW_HEIGHT = 26;
 
@@ -31,32 +27,6 @@ public class Helper {
         g.setHeight((float) (headH + bodyH + footH), Sizeable.Unit.PIXELS);
     }
 
-
-    public static String fmtN2(Long num) {
-        return NumberTools.format2.format(num / 100.0);
-    }
-
-    public static String fmtN3_2(Long num) {
-        return NumberTools.format2.format(Math.round(num / 10.0) / 100.0);
-    }
-
-    public static String fmtN3(Long num) {
-        return NumberTools.format3.format(num / 1000.0);
-    }
-
-    public static final DateTimeFormatter DT_FORMATTER_DDMMYYYYHHMMSS = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-    public static final DateTimeFormatter DATE_FORMATTER_DDMMYYYY = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    public static final LocalDate DATE_2100 = LocalDate.of(2100, 01, 01);
-
-    public static String fmtDate8(LocalDate dt) {
-        if (DATE_2100.equals(dt)) return "---";
-        return DATE_FORMATTER_DDMMYYYY.format(dt);
-    }
-
-    public static String fmtDT86(LocalDateTime dt) {
-        if (DATE_2100.equals(dt)) return "---";
-        return DT_FORMATTER_DDMMYYYYHHMMSS.format(dt);
-    }
 
     public static <T extends AbstractComponent> T style(T comp, String... styles) {
         for (String s : styles) comp.addStyleName(s);
@@ -75,11 +45,41 @@ public class Helper {
         return c;
     }
 
+    private static double boundedGridColumnWidth(Grid.Column col) {
+        if (col.isHidden()) return 0;
+        double w = col.isWidthUndefined() ? 0 : col.getWidth();
+        double min = col.getMinimumWidth();
+        if (min >= 0 && w < min) w = min;
+        double max = col.getMaximumWidth();
+        if (max >= 0 && w > max) w = max;
+        return w;
+    }
+
+//    private static LoggerExt logger;
+//
+//    static {
+//        logger = LoggerExt.getNewLogger("UHelper").enable(true);
+//    }
+
     public static <T> void updateGridColumns(Grid<T> grid, SizeReporter sizeReporter) {
         double ww = 0;
-        for (Grid.Column<T, ?> c : grid.getColumns()) if (!c.isWidthUndefined()) ww += c.getWidth();
+        // Вычисляем фактическую суммарную ширину колонок (у тех, что не определены - берем по ограничениям, если есть.
+        for (Grid.Column<T, ?> c : grid.getColumns()) ww += boundedGridColumnWidth(c);
+        // Если есть минимальная ширина, и она больше ширины таблицы - сбрасываем ширины изменяемых столбцов для пересчёта.
         if (ww > 0 && ww < sizeReporter.getWidth()) {
-            for (Grid.Column<T, ?> c : grid.getColumns()) c.setWidthUndefined();
+            //logger.info("UPD-COLS: ww=" + ww + " size=" + sizeReporter.getWidth());
+            for (Grid.Column<T, ?> c : grid.getColumns()) {
+                if (c.isHidden()) continue;
+                double min = c.getMinimumWidth();
+                double max = c.getMaximumWidth();
+                double w = c.getWidth();
+                if (min >= 0 && max >= 0 && min == max) { // Fixed column.
+                    if (c.getWidth() != min) c.setWidth(min);
+                } else {
+                    if (!c.isWidthUndefined()) c.setWidthUndefined();
+                }
+                //logger.info("[" + c.getId() + "]: min=" + min + " max=" + max + " w=" + w + " -> w=" + c.getWidth());
+            }
         }
     }
 
