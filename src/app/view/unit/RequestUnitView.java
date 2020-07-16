@@ -167,7 +167,7 @@ public class RequestUnitView extends BaseUnitView<RequestUnitView.PM> {
         dataService.refresh();
     }
 
-    private class RequestDataService extends BaseDataService<Request> {
+    private class RequestDataService extends BaseGridDataService<Request> {
 
         private LocalDate dtstart, dtend;
         private Request.Type type;

@@ -204,7 +204,7 @@ public class AppModel {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Авторизаци \ деавторизация пользователя.
+    // Авторизация \ деавторизация пользователя.
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public User getUser() {
         return user;
@@ -346,19 +346,40 @@ public class AppModel {
         return count[0];
     }
 
+    /**
+     * Выборка списка карт, которые были рабочими в заданный период.
+     */
+    public ArrayList<Card> loadClientWorkCards(Integer iddfirm, Integer iddclient, Integer iddsub,
+                                               LocalDate dtstart, LocalDate dtend) throws ExError {
+        final ArrayList<Card> list = new ArrayList<>();
+        QFB((con) -> {
+            FB_Query q = con.execute("SELECT "
+                            + " DTW, DTWEND, IDD, IACCTYPE, IBWORK, DTPAY, CDRIVER, CCAR, DBDAYLIMIT, CCOMMENT "
+                            + " FROM W_CLIENT_WORKCARD_LIST(?,?,?,?,?)",
+                    iddfirm, iddclient, iddsub, dtstart, dtend);
+            while (q.next()) {
+                list.add(new Card(q.getLocalDate("DTW"), q.getLocalDate("DTWEND"), q.getString("IDD"),
+                        q.getInteger("IACCTYPE"), q.getInteger("IBWORK"), q.getLocalDate("DTPAY"), q.getString("CDRIVER"), q.getString("CCAR"),
+                        q.getLong("DBDAYLIMIT"), q.getString("CCOMMENT")));
+            }
+            q.closeSafe();
+        });
+        return list;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public ArrayList<Transaction> loadClientTransactions(Integer iddfirm, Integer iddclient, Integer iddsub, LocalDate dtstart,
-                                                         LocalDate dtend, Integer iddazs,
+    public ArrayList<Transaction> loadClientTransactions(Integer iddfirm, Integer iddclient, Integer iddsub,
+                                                         LocalDate dtstart, LocalDate dtend, Integer iddazs, String iddcard,
                                                          int offset, int limit, String sort) throws ExError {
         ArrayList<Transaction> list = new ArrayList<>();
         QFB((con) -> {
             FB_Query q = con.execute("SELECT FIRST " + limit + " SKIP " + offset + " "
                             + "DTSTART, DTEND, IDDCARD, CCARD, IDD, IDDAZS, IDDTRK, IDDOIL, IACCTYPE, DBPRICE, DBVOLREQ, DBVOLUME, DBSUMMA "
-                            + "FROM W_CLIENT_TRANS_VIEW(?,?,?,NULL, ?,?,?) "
+                            + "FROM W_CLIENT_TRANS_VIEW(?,?,?, ?,?,?,?) "
                             + (StringTools.isEmptySafe(sort) ? "" : " ORDER BY " + sort),
-                    iddfirm, iddclient, iddsub, dtstart, dtend, iddazs);
+                    iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, iddcard);
             while (q.next()) {
                 list.add(new Transaction(
                         q.getLocalDateTime("DTSTART"),
@@ -380,12 +401,12 @@ public class AppModel {
         return list;
     }
 
-    public int loadClientTransactionsCount(Integer iddfirm, Integer iddclient, Integer iddsub, LocalDate dtstart, LocalDate dtend,
-                                           Integer iddazs) throws ExError {
+    public int loadClientTransactionsCount(Integer iddfirm, Integer iddclient, Integer iddsub,
+                                           LocalDate dtstart, LocalDate dtend, Integer iddazs, String iddcard) throws ExError {
         final int[] count = {-1};
         QFB((con) -> {
-            FB_Query q = con.execute("SELECT count(*) FROM W_CLIENT_TRANS_VIEW(?,?,?,NULL, ?,?,?)",
-                    iddfirm, iddclient, iddsub, dtstart, dtend, iddazs);
+            FB_Query q = con.execute("SELECT count(*) FROM W_CLIENT_TRANS_VIEW(?,?,?, ?,?,?,?)",
+                    iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, iddcard);
             if (q.next()) count[0] = q.getInteger(1);
             q.closeSafe();
         });

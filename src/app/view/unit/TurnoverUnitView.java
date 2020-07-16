@@ -5,17 +5,18 @@ import app.model.*;
 import com.vaadin.data.provider.DataProvider;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.ui.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Grid;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.components.grid.FooterCell;
 import com.vaadin.ui.components.grid.FooterRow;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static app.AppServlet.logger;
+import static app.model.Helper.fmtDate8;
+import static app.model.Helper.fmtN2;
 import static app.view.unit.UHelper.*;
-import static app.model.Helper.*;
 
 /**
  * @author Aleksey Dokshin <dant.it@gmail.com> (13.12.17).

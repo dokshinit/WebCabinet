@@ -13,6 +13,7 @@ import com.vaadin.data.provider.QuerySortOrder;
 import com.vaadin.event.LayoutEvents;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Responsive;
+import com.vaadin.server.SerializableFunction;
 import com.vaadin.server.UserError;
 import com.vaadin.shared.data.sort.SortDirection;
 import com.vaadin.shared.ui.ContentMode;
@@ -669,9 +670,9 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
      * Сервис предоставления данных для больших таблиц (извлечение данных порционное, только той части, что нужна для
      * отображения плюс небольшой запас).
      */
-    protected abstract class BaseDataService<T> {
+    protected abstract class BaseDataService1<T> {
 
-        protected final Grid<T> grid;
+        protected final AbstractListing<T> component;
         protected final DataProvider<T, Void> dataProvider;
 
         protected abstract void setup();
@@ -682,15 +683,13 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
 
         protected void refresh() {
             setup();
-            grid.setDataProvider(dataProvider);
-            grid.recalculateColumnWidths();
         }
 
-        protected BaseDataService(Grid<T> grid) {
-            this.grid = grid;
+        protected BaseDataService1(AbstractListing<T> component) {
+            this.component = component;
             this.dataProvider = DataProvider.fromCallbacks(
-                    q -> fetch(grid, q.getOffset(), q.getLimit(), q.getSortOrders()).stream(),
-                    q -> count(grid)
+                    q -> fetch(component, q.getOffset(), q.getLimit(), q.getSortOrders()).stream(),
+                    q -> count(component)
             );
         }
 
@@ -722,6 +721,36 @@ public abstract class BaseUnitView<M extends BaseUnitView.BaseParamsModel> exten
                 if (errcomp != null) errcomp.setComponentError(new UserError(ex.getMessage()));
                 return 0;
             }
+        }
+    }
+
+    /** Для Grid - пересчет ширины столбцов. */
+    protected abstract class BaseGridDataService<T> extends BaseDataService1<T> {
+
+        protected void refresh() {
+            super.refresh();
+            ((Grid<T>) component).setDataProvider(dataProvider);
+            ((Grid<T>) component).recalculateColumnWidths();
+        }
+
+        protected BaseGridDataService(Grid<T> grid) {
+            super(grid);
+        }
+    }
+
+    /** Для ComboBox. */
+    protected abstract class BaseComboDataService<T> extends BaseDataService1<T> {
+
+        protected final SerializableFunction<String, Void> filterConverter;
+
+        protected void refresh() {
+            super.refresh();
+            ((ComboBox<T>) component).setDataProvider(dataProvider, filterConverter);
+        }
+
+        protected BaseComboDataService(ComboBox<T> combo, SerializableFunction<String, Void> filterConverter) {
+            super(combo);
+            this.filterConverter = filterConverter;
         }
     }
 }

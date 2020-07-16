@@ -9,7 +9,6 @@ import com.vaadin.ui.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static app.model.Helper.*;
 import static app.view.unit.UHelper.*;
@@ -100,7 +99,7 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
         Grid.Column<Card, Card.WorkState> c2;
         column(grid, Card::getDtw, Helper::fmtDate8, "DTW", "Изменена", ST_AL_CENTER, -90, null).setHidable(true);
         //column(grid, Card::getDtwEnd, UHelper::fmtDate8, "DTWEND", "Завершение", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
-        c1 = column(grid, Card::getIddCard, null, "IDD", "№", ST_AL_CENTER, -90, null);
+        c1 = column(grid, Card::getTitle, null, "IDD", "№", ST_AL_CENTER, -90, null);
         column(grid, Card::getAccType, AccType::getAbbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, -50, null).setHidable(true);
         c2 = column(grid, Card::getWorkState, Card.WorkState::getTitle, "IBWORK", "Состояние", ST_AL_CENTER, -90, null).setHidable(true);
         column(grid, Card::getDtPay, Helper::fmtDate8, "DTPAY", "Покупка", ST_AL_CENTER, -90, null).setHidable(true).setHidden(true);
@@ -180,7 +179,7 @@ public class CardUnitView extends BaseUnitView<CardUnitView.PM> {
         dataService.refresh();
     }
 
-    private class CardDataService extends BaseDataService<Card> {
+    private class CardDataService extends BaseGridDataService<Card> {
 
         private Integer iddfirm, iddclient, iddsub;
         private LocalDate dtw;

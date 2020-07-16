@@ -6,6 +6,7 @@ import app.model.*;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.UserError;
 import com.vaadin.ui.*;
+import util.CommonTools;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -20,11 +21,13 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
 
     class PM extends BaseUnitView.BaseParamsModel<PM> {
         public Azs azs;
+        public Card card;
 
         PM() {
             super(BaseParamsModel.DateLimitEnum.CLIENT, BaseParamsModel.DateLimitEnum.FIX,
                     BaseParamsModel.DatesModeEnum.PERIOD, null, null);
             azs = null;
+            card = null;
         }
 
         @Override
@@ -32,6 +35,7 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
             if (dst != null) {
                 super.to(dst);
                 dst.azs = azs;
+                dst.card = card;
             }
         }
 
@@ -42,14 +46,28 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         String getAzsIddAsString() {
             return getAzsIdd() == null ? "" : "" + getAzsIdd();
         }
+
+        String getCardIdd() {
+            return card == null ? null : card.getIdd();
+        }
+
+        String getCardIddAsString() {
+            return card == null ? "" : card.getIdd().trim();
+        }
+
+        String getCardTitle() {
+            return card == null ? null : card.getTitle();
+        }
     }
 
     private Grid<Transaction> grid;
     private TransactionDataService dataService;
     private SingleSelect<Transaction> singleSelect;
     private ComboBox<Azs> azsCombo;
+    private ComboBox<Card> cardCombo;
 
     private ArrayList<Azs> azsList = null;
+    private ArrayList<Card> cardList = null;
 
     public TransactionUnitView() {
         super("transaction", "Транзакции отпуска топлива");
@@ -65,6 +83,7 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         toolbarPM = new PM();
 
         curPM.azs = null;
+        curPM.card = null;
         try {
             dtFix = model.getFixDate();
             curPM.dtStart = dtFix.withDayOfMonth(1);
@@ -105,8 +124,9 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
     @Override
     protected void buildHeadToolbar() {
         buildHeadToolbarLayout();
-        buildAzsCombo();
         buildHeadToolbarDates();
+        buildAzsCombo();
+        buildCardCombo();
         buildHeadToolbarButtons();
     }
 
@@ -118,19 +138,62 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         azsCombo.setItemCaptionGenerator(Azs::getTitle);
         azsCombo.addValueChangeListener((e) -> fireOnAzsChanged(e.getValue()));
         azsCombo.setEnabled(false);
-        try {
-            if (azsList == null) {
-                azsList = model.loadAzs(0, LocalDate.now().minusMonths(1), LocalDate.now());
-                azsCombo.setItems(azsList);
-                azsCombo.setEnabled(true);
-            }
-        } catch (ExError ex) {
-            azsCombo.setComponentError(new UserError(ex.getMessage()));
-        }
+        updateAzs();
         HorizontalLayout azsL = new HorizontalLayout(azsCombo);
         azsL.setMargin(false);
 
         toolbarL.addComponent(azsL);
+    }
+
+    private void updateAzs() {
+        if (!isValidToolbar()) return;
+        try {
+            Optional<Azs> item = azsCombo.getSelectedItem();
+            azsList = model.loadAzs(0, curPM.dtStart, curPM.dtEnd); // по всем фирмам т.к. могут заправляться и на снежинке!
+            azsCombo.setItems(azsList);
+            azsCombo.setEnabled(true);
+            if (item.isPresent()) {
+                int idd = item.get().getIdd();
+                azsList.stream().filter(a -> a.getIdd() == idd).findFirst()
+                        .ifPresent(azs -> azsCombo.setSelectedItem(azs));
+            }
+        } catch (ExError ex) {
+            azsCombo.setComponentError(new UserError(ex.getMessage()));
+        }
+    }
+
+    private void buildCardCombo() {
+        cardCombo = style(new ComboBox<>("Карта"), "small");
+        cardCombo.setTextInputAllowed(false);
+        cardCombo.setEmptySelectionAllowed(true);
+        cardCombo.setEmptySelectionCaption("< Все >");
+        cardCombo.setItemCaptionGenerator(Card::getTitle);
+        cardCombo.addValueChangeListener((e) -> fireOnCardChanged(e.getValue()));
+        cardCombo.setEnabled(false);
+        updateCards();
+
+        HorizontalLayout azsL = new HorizontalLayout(cardCombo);
+        azsL.setMargin(false);
+
+        toolbarL.addComponent(azsL);
+    }
+
+    private void updateCards() {
+        if (!isValidToolbar()) return;
+        try {
+            Optional<Card> item = cardCombo.getSelectedItem();
+            cardList = model.loadClientWorkCards(user.getFirm().id, user.getIddClient(), user.getIddClentSub(),
+                    curPM.dtStart, curPM.dtEnd);
+            cardCombo.setItems(cardList);
+            cardCombo.setEnabled(true);
+            if (item.isPresent()) {
+                String idd = item.get().getIdd();
+                cardList.stream().filter(c -> CommonTools.isEqualValues(c.getIdd(), idd)).findFirst()
+                        .ifPresent(card -> cardCombo.setSelectedItem(card));
+            }
+        } catch (ExError ex) {
+            cardCombo.setComponentError(new UserError(ex.getMessage()));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -141,7 +204,7 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         column(grid, Transaction::getStart, Helper::fmtDT86, "DTSTART", "Время", ST_AL_CENTER, -160, null);
         column(grid, Transaction::getIddAzs, null, "IDDAZS", "АЗС", ST_AL_CENTER, -50, null);
         column(grid, Transaction::getIdd, null, "IDD", "№", ST_AL_RIGHT, -70, null).setHidable(true).setHidden(true);
-        column(grid, Transaction::getCard, null, "IDDCARD", "Карта", ST_AL_CENTER, -70, null);
+        column(grid, Transaction::getCardTitle, null, "IDDCARD", "Карта", ST_AL_CENTER, -70, null);
         column(grid, Transaction::getCardInfo, null, "CCARD", "Информация", ST_AL_LEFT, -100, null).setSortable(false).setHidable(true).setHidden(true);
         column(grid, Transaction::getAccType, AccType::getAbbreviation, "IACCTYPE", "Тип", ST_AL_CENTER, -45, null).setHidable(true);
         column(grid, Transaction::getOil, Oil::getAbbreviation, "IDDOIL", "Н/П", ST_AL_CENTER, -60, null);
@@ -174,8 +237,24 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         }
     }
 
+    @Override
+    protected void fireOnDateChanged(int id) {
+        super.fireOnDateChanged(id);
+
+        if (isValidToolbar()) {
+            updateAzs();
+            updateCards();
+        }
+    }
+
     private void fireOnAzsChanged(Azs azs) {
         toolbarPM.azs = azs;
+        toolbarParamsChanged = true;
+        updateButtonsState(!isValidToolbar());
+    }
+
+    private void fireOnCardChanged(Card card) {
+        toolbarPM.card = card;
         toolbarParamsChanged = true;
         updateButtonsState(!isValidToolbar());
     }
@@ -188,10 +267,14 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         RequestBase.ParamsMap params = new RequestBase.ParamsMap()
                 .put("dtStart", s1 = fmtDate8(curPM.dtStart))
                 .put("dtEnd", s2 = fmtDate8(curPM.dtEnd))
-                .put("iddAzs", curPM.getAzsIddAsString());
+                .put("iddAzs", curPM.getAzsIddAsString())
+                .put("iddCard", curPM.getCardIddAsString());
         //
         Request r = Request.newReport(Request.ReportType.TRANSACTION,
-                "за период с " + s1 + " по " + s2 + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd()), params);
+                "за период с " + s1 + " по " + s2
+                        + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd())
+                        + (curPM.getCardIdd() == null ? "" : " по карте №" + curPM.getCardTitle()),
+                params);
         RequestDialog dlg = new RequestDialog(r);
         getUI().addWindow(dlg);
     }
@@ -203,10 +286,14 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         RequestBase.ParamsMap params = new RequestBase.ParamsMap()
                 .put("dtStart", s1 = fmtDate8(curPM.dtStart))
                 .put("dtEnd", s2 = fmtDate8(curPM.dtEnd))
-                .put("iddAzs", curPM.getAzsIddAsString());
+                .put("iddAzs", curPM.getAzsIddAsString())
+                .put("iddCard", curPM.getCardIddAsString());
         //
         Request r = Request.newExport(Request.ExportType.TRANSACTION,
-                "за период с " + s1 + " по " + s2 + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd()), params);
+                "за период с " + s1 + " по " + s2
+                        + (curPM.getAzsIdd() == null ? "" : " на АЗС №" + curPM.getAzsIdd())
+                        + (curPM.getCardIdd() == null ? "" : " по карте №" + curPM.getCardTitle()),
+                params);
         RequestDialog dlg = new RequestDialog(r);
         getUI().addWindow(dlg);
     }
@@ -215,6 +302,7 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
     protected void initToolbar() {
         super.initToolbar();
         azsCombo.setSelectedItem(curPM.azs);
+        cardCombo.setSelectedItem(curPM.card);
     }
 
     @Override
@@ -227,18 +315,22 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
         super.updateData();
 
         int iddazs = curPM.getAzsIdd() == null ? 0 : curPM.getAzsIdd();
+        String iddcard = curPM.getCardIdd();
         paramsLabel.setValue("<span class='datesrange'>за период с <b>" + fmtDate8(curPM.dtStart) +
                 "</b> по <b>" + fmtDate8(curPM.dtEnd) + "</b></span>, " +
-                "<span>" + (iddazs == 0 ? "по <b>всем АЗС</b>" : "по <b>АЗС №" + iddazs + "</b>") + "</span>");
+                "<span>" + (iddazs == 0 ? "по <b>всем АЗС</b>" : "по <b>АЗС №" + iddazs + "</b>") + "</span>" +
+                "<span>" + (iddcard == null ? "по <b>всем картам</b>" : "по <b>карте №" + iddcard + "</b>") + "</span>"
+        );
 
         dataService.refresh();
     }
 
-    private class TransactionDataService extends BaseDataService<Transaction> {
+    private class TransactionDataService extends BaseGridDataService<Transaction> {
 
         private Integer iddfirm, iddclient, iddsub;
         private LocalDate dtstart, dtend;
         private Integer iddazs;
+        private String iddcard;
 
         public TransactionDataService(Grid<Transaction> grid) {
             super(grid);
@@ -252,16 +344,17 @@ public class TransactionUnitView extends BaseUnitView<TransactionUnitView.PM> {
             this.dtstart = curPM.dtStart;
             this.dtend = curPM.dtEnd;
             this.iddazs = curPM.getAzsIdd();
+            this.iddcard = curPM.getCardIdd();
         }
 
         @Override
         protected ArrayList<Transaction> load(int offset, int limit, String sort) throws ExError {
-            return model.loadClientTransactions(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, offset, limit, sort);
+            return model.loadClientTransactions(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, iddcard, offset, limit, sort);
         }
 
         @Override
         protected int count() throws ExError {
-            return model.loadClientTransactionsCount(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs);
+            return model.loadClientTransactionsCount(iddfirm, iddclient, iddsub, dtstart, dtend, iddazs, iddcard);
         }
     }
 }

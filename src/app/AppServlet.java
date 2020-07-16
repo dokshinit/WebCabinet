@@ -11,7 +11,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,7 +93,7 @@ public class AppServlet extends VaadinServlet implements SessionInitListener, Se
             cfg.load(appHome + File.separator + "app.config");
 
             base = cfg.getKey("db.host", "127.0.0.1") + ":" + cfg.getKey("db.alias", "WebCenter");
-            user = cfg.getKey("db.user", "WEB");
+            user = cfg.getKey("db.user", "LK_WEB");
             password = cfg.getKey("db.password", "xxxxxxxx");
             answersPath = cfg.getKey("requestprocessor.answerspath", appHome + File.separator + "answers");
             isDeveloping = cfg.getIntKey("developing", 0) != 0;

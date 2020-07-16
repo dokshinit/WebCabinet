@@ -6,13 +6,8 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewProvider;
-import com.vaadin.server.Page;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.UI;
-
-import java.net.URI;
-
-import static app.AppServlet.logger;
 
 @SuppressWarnings("serial")
 public class AppNavigator extends Navigator {
